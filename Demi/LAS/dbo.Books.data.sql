@@ -1,0 +1,7 @@
+﻿SET IDENTITY_INSERT [dbo].[Books] ON
+INSERT INTO [dbo].[Books] ([Id], [Name], [Author], [Year], [Description], [Quantity], [SerialNumber], [ImagePath]) VALUES (1, N'Create Your Own Business', N'James Mendor', 2000, N'A book to learn how to create your own business ', 5, N'BOOK1', N'/images/e28209f6-63a1-43c3-b025-9ab413de65f0.png')
+INSERT INTO [dbo].[Books] ([Id], [Name], [Author], [Year], [Description], [Quantity], [SerialNumber], [ImagePath]) VALUES (2, N'The Great Escape', N'Joanna Well', 2001, N'A book on how to make a great escape', 4, N'BOOK2', N'/images/c6bd3bdd-5e50-4377-adf7-8873b63460b2.png')
+INSERT INTO [dbo].[Books] ([Id], [Name], [Author], [Year], [Description], [Quantity], [SerialNumber], [ImagePath]) VALUES (3, N'The Great Escape', N'Joanna Well', 2001, N'A book on how to make a great escape', 0, N'BOOK2', N'/images/c6bd3bdd-5e50-4377-adf7-8873b63460b2.png')
+INSERT INTO [dbo].[Books] ([Id], [Name], [Author], [Year], [Description], [Quantity], [SerialNumber], [ImagePath]) VALUES (4, N'Create Your Own Business', N'James Mendor', 2000, N'A book to learn how to create your own business ', 5, N'BOOK1', N'/images/e28209f6-63a1-43c3-b025-9ab413de65f0.png')
+INSERT INTO [dbo].[Books] ([Id], [Name], [Author], [Year], [Description], [Quantity], [SerialNumber], [ImagePath]) VALUES (5, N'The Great Escape', N'Joanna Well', 2001, N'A book on how to make a great escape', 4, N'BOOK2', N'/images/c6bd3bdd-5e50-4377-adf7-8873b63460b2.png')
+SET IDENTITY_INSERT [dbo].[Books] OFF
