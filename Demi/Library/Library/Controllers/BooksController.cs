@@ -3,20 +3,22 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using LAS.Data;
-using LAS.Models;
-using LAS.Models.Dtos;
+using ClosedXML.Excel;
+using Library.Data;
+using Library.Models;
+using Library.Models.Dtos;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Processing;
 using static System.Reflection.Metadata.BlobBuilder;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
-namespace LAS.Controllers
+namespace Library.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -43,55 +45,9 @@ namespace LAS.Controllers
         {
             return await _context.Books.ToListAsync();
         }
-        [HttpGet("books")]
-        public async Task<IActionResult> GetBooks(
-            [FromQuery] string? search = null,
-            [FromQuery] string? sort = "Id",  // ✅ Default sorting by Id
-            [FromQuery] string? order = "asc",
-            [FromQuery] string? filter = null)
-        {
-            var books = _context.Books.AsQueryable();
-
-            // 🔹 Search by Name or Serial Number
-            if (!string.IsNullOrEmpty(search))
-            {
-                books = books.Where(b => b.Name.Contains(search) || b.SerialNumber.Contains(search));
-            }
-
-            // 🔹 Filtering Logic
-            if (!string.IsNullOrEmpty(filter))
-            {
-                switch (filter.ToLower())
-                {
-                    case "available":
-                        books = books.Where(b => b.Quantity > 0);
-                        break;
-                    case "unavailable":
-                        books = books.Where(b => b.Quantity == 0);
-                        break;
-                }
-            }
-
-            // 🔹 Sorting Logic (Including Default `Id`)
-            var validColumns = new HashSet<string> { "Id", "Name", "Author", "SerialNumber", "Quantity" };
-            if (validColumns.Contains(sort))
-            {
-                books = order.ToLower() == "asc"
-                    ? books.OrderBy(b => EF.Property<object>(b, sort))
-                    : books.OrderByDescending(b => EF.Property<object>(b, sort));
-            }
-            else
-            {
-                // ✅ Default to sorting by Id if sort parameter is invalid
-                books = books.OrderBy(b => b.Id);
-            }
-
-            return Ok(await books.ToListAsync());
-        }
-
-
+       
         //
-        [HttpGet("boos")]
+        [HttpGet("books")]
         public async Task<IActionResult> GetBooks(
     [FromQuery] string? search = null,
     [FromQuery] string? sort = "Id",
@@ -172,7 +128,7 @@ namespace LAS.Controllers
                     b.Year,
                     b.Description,
                     b.Quantity,
-                    Image = $"{Request.Scheme}://{Request.Host}/uploads/{b.ImagePath}".Replace("//", "/") // FIXED DOUBLE SLASH ISSUE
+                    Image = $"{Request.Scheme}://{Request.Host}/uploads/{b.ImagePath}".Replace("//", "/") // FIXED DOUBLE SLibraryH ISSUE
                 })
                 .FirstOrDefaultAsync();
 
@@ -183,149 +139,48 @@ namespace LAS.Controllers
 
             return Ok(book);
         }
-        // Borrow a book (reduce quantity)
-        //[HttpPost("borrow/{serialNumber}")]
-        //public async Task<IActionResult> BorrowBook(string serialNumber)
-        //{
-        //    var book = await _context.Books.FirstOrDefaultAsync(b => b.SerialNumber == serialNumber);
-
-        //    if (book == null)
-        //    {
-        //        return NotFound(new { message = "Book not found." });
-        //    }
-
-        //    if (book.Quantity <= 0)
-        //    {
-        //        return BadRequest(new { message = "Book is out of stock." });
-        //    }
-
-        //    book.Quantity -= 1;
-        //    _context.Entry(book).State = EntityState.Modified;
-        //    await _context.SaveChangesAsync();
-
-        //    return Ok(new { message = "Book borrowed successfully.", remainingQuantity = book.Quantity });
-        //}
-        //[HttpPost("borrow/{serialNumber}/{matricNumber}")]
-        //public async Task<IActionResult> BorrowBook(string serialNumber, string matricNumber)
-        //{
-        //    var student = await _context.Students.FirstOrDefaultAsync(s => s.MatricNumber == matricNumber);
-        //    if (student == null)
-        //    {
-        //        return NotFound(new { message = "Student not found." });
-        //    }
-            
-        //    var book = await _context.Books.FirstOrDefaultAsync(b => b.SerialNumber == serialNumber);
-        //    if (book == null)
-        //    {
-        //        return NotFound(new { message = "Book not found." });
-        //    }
-
-        //    if (book.Quantity <= 0)
-        //    {
-        //        return BadRequest(new { message = "Book is out of stock." });
-        //    }
-
-        //    // ✅ Check if student has reached their borrow limit
-        //    int borrowLimit = student.GetBorrowLimit(); // Limit based on rating
-        //    int currentlyBorrowed = await _context.BorrowRecords
-        //        .CountAsync(b => b.MatricNumber == matricNumber && !b.IsReturned);
-
-        //    if (currentlyBorrowed >= borrowLimit)
-        //    {
-        //        return BadRequest(new { message = $"Borrow limit reached. You can only borrow {borrowLimit} books at a time." });
-        //    }
-
-        //    // Check if the user already borrowed this book
-        //    var existingBorrow = await _context.BorrowRecords
-        //        .FirstOrDefaultAsync(b => b.MatricNumber == matricNumber && b.SerialNumber == serialNumber && !b.IsReturned);
-
-        //    if (existingBorrow != null)
-        //    {
-        //        return BadRequest(new { message = "You have already borrowed this book." });
-        //    }
-
-        //    // Allowed borrow time (e.g., 48 hours)
-        //    float allowedBorrowHours = 48;
-        //    DateTime dueDate = DateTime.UtcNow.AddHours(allowedBorrowHours);
-
-        //    // Create borrow record
-        //    var borrowRecord = new BorrowRecord
-        //    {
-        //        MatricNumber = matricNumber,
-        //        SerialNumber = serialNumber,
-        //        BorrowTime = DateTime.UtcNow,
-        //        AllowedBorrowHours = allowedBorrowHours,
-        //        DueDate = dueDate,
-        //        IsReturned = false
-        //    };
-
-        //    //student.BorrowedBooks += 1; // ✅ Increase BorrowedBooks count
-        //    book.Quantity -= 1;         // ✅ Reduce book quantity
-
-        //    _context.BorrowRecords.Add(borrowRecord);
-        //    await _context.SaveChangesAsync();
-            
-
-        //    return Ok(new
-        //    {
-        //        message = "Book borrowed successfully.",
-        //        borrowTime = borrowRecord.BorrowTime,
-        //        allowedBorrowHours,
-        //        dueDate,
-        //        borrowedBooks = _context.BorrowRecords.Count(b => b.MatricNumber == matricNumber && !b.IsReturned),
-        //        borrowlimit =borrowLimit
-        //    });
-        //}
-
-        [HttpGet("borrowed-books/{matricNumber}")]
-        public async Task<IActionResult> GetBorrowedBooks(string matricNumber)
-        {
-            matricNumber = Uri.UnescapeDataString(matricNumber);
-            var student = await _context.Students
-                .Include(s => s.BorrowRecords)
-                .FirstOrDefaultAsync(s => s.MatricNumber == matricNumber);
-
-            if (student == null)
-            {
-                return NotFound(new { message = "Student not found." });
-            }
-            int borrowLimit = student.GetBorrowLimit(); // Limit based on rating
-            var borrowHistory = await _context.BorrowRecords
-                .Where(b => b.MatricNumber == matricNumber && !b.IsReturned)
-                .Select(b=>new
-                {
-                    
-                    b.SerialNumber,
-                    b.IsReturned,
-                    b.DueDate,
-                    b.BorrowTime,
-                    b.AllowedBorrowHours,
-                    b.Overdue
-                })
-                .ToListAsync();
         
-            //var borrowRecord = await _context.BorrowRecords
-            //    .FirstOrDefaultAsync(b => b.MatricNumber == matricNumber && !b.IsReturned);
-            
-            return Ok(new
-            {
-                borrowLimit=borrowLimit,
-
-
-                matricNumber = student.MatricNumber,
-                
-                borrowedBooks_no = _context.BorrowRecords.Count(b => b.MatricNumber == matricNumber && !b.IsReturned) , // ✅ Correct count
-                borrowedBooks= borrowHistory,
-                
-
-
-            });
-        }
-        [HttpPost("request-borrow/{serialNumber}/{matricNumber}")]
-        public async Task<IActionResult> RequestBorrowCode(string serialNumber, string matricNumber)
+        [HttpPatch("upload-image")]
+        public async Task<IActionResult> UploadBookImage([FromQuery] string serialNumber, IFormFile file)
         {
-            matricNumber = Uri.UnescapeDataString(matricNumber);
-            var student = await _context.Students.FirstOrDefaultAsync(s => s.MatricNumber == matricNumber);
+            if (string.IsNullOrEmpty(serialNumber))
+            {
+                return BadRequest(new { message = "Serial Number is required." });
+            }
+
+            var book = await _context.Books.FirstOrDefaultAsync(b => b.SerialNumber == serialNumber);
+            if (book == null)
+            {
+                return NotFound(new { message = "Book not found." });
+            }
+
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest(new { message = "No image uploaded." });
+            }
+
+            try
+            {
+                // Save the image and update the database
+                var filePath = await SaveAndResizeImage(file);
+                book.ImagePath = filePath ?? string.Empty; // Ensure it's not NULL
+
+                await _context.SaveChangesAsync();
+                return Ok(new { message = "Image uploaded successfully.", imagePath = book.ImagePath });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while saving the image.", error = ex.Message });
+            }
+        }
+
+
+        [HttpPost("request-borrow/{serialNumber}/{UserId}")]
+        public async Task<IActionResult> RequestBorrowCode(string serialNumber, string UserId)
+        {
+            UserId = Uri.UnescapeDataString(UserId);
+         
+            var student = await _context.Users.FirstOrDefaultAsync(s => s.UserId == UserId);
             if (student == null)
             {
                 return NotFound(new { message = "Student not found." });
@@ -343,7 +198,7 @@ namespace LAS.Controllers
             }
             int borrowLimit = student.GetBorrowLimit(); // Limit based on rating
             int currentlyBorrowed = await _context.BorrowRecords
-                .CountAsync(b => b.MatricNumber == matricNumber && !b.IsReturned);
+                .CountAsync(b => b.UserId == UserId && !b.IsReturned);
 
             if (currentlyBorrowed >= borrowLimit)
             {
@@ -351,7 +206,7 @@ namespace LAS.Controllers
             }
             //Check if the user already borrowed this book
             var existingBorrow = await _context.BorrowRecords
-                   .FirstOrDefaultAsync(b => b.MatricNumber == matricNumber && b.SerialNumber == serialNumber && !b.IsReturned);
+                   .FirstOrDefaultAsync(b => b.UserId == UserId && b.SerialNumber == serialNumber && !b.IsReturned);
 
             if (existingBorrow != null)
             {
@@ -363,7 +218,7 @@ namespace LAS.Controllers
 
             var pendingBorrow = new PendingBorrow
             {
-                MatricNumber = matricNumber,
+                UserId = UserId,
                 SerialNumber = serialNumber,
                 BorrowCode = borrowCode,
                 RequestTime = DateTime.UtcNow,
@@ -380,22 +235,43 @@ namespace LAS.Controllers
         [HttpGet("pending-borrows")]
         public async Task<IActionResult> GetPendingBorrows()
         {
+            var currentTime = DateTime.UtcNow;
+            var expiryDuration = TimeSpan.FromHours(0.1);
+
+            // Get pending borrows including expired ones
             var pendingBorrows = await _context.PendingBorrows
-                .Where(pb => !pb.IsApproved) // Only show unapproved requests
+                .Where(pb => !pb.IsApproved)
                 .Select(pb => new
                 {
                     pb.Id,
-                    pb.MatricNumber,
+                    pb.UserId,
                     pb.SerialNumber,
                     pb.BorrowCode,
                     pb.RequestTime,
-                    ExpiryTime = pb.RequestTime.AddHours(0.1) // Show expiration time
+                    ExpiryTime = pb.RequestTime.Add(expiryDuration) // Show expiration time
                 })
                 .ToListAsync();
 
+            // Find expired requests
+            var expiredRequests = pendingBorrows
+                .Where(pb => pb.ExpiryTime <= currentTime)
+                .ToList();
+
+            // Remove expired requests from the database
+            if (expiredRequests.Any())
+            {
+                var expiredIds = expiredRequests.Select(pb => pb.Id).ToList();
+                var expiredEntities = await _context.PendingBorrows
+                    .Where(pb => expiredIds.Contains(pb.Id))
+                    .ToListAsync();
+
+                _context.PendingBorrows.RemoveRange(expiredEntities);
+                await _context.SaveChangesAsync();
+            }
 
             return Ok(pendingBorrows);
         }
+
 
         [HttpPost("approve-borrow/{borrowCode}")]
         public async Task<IActionResult> ApproveBorrowRequest(string borrowCode)
@@ -413,16 +289,17 @@ namespace LAS.Controllers
 
             return Ok(new { message = "Borrow request approved.", borrowCode });
         }
-        [HttpPost("borrow/{serialNumber}/{matricNumber}/{borrowCode}")]
-        public async Task<IActionResult> BorrowBook(string serialNumber, string matricNumber, string borrowCode)
+        [HttpPost("borrow/{serialNumber}/{UserId}/{borrowCode}")]
+        public async Task<IActionResult> BorrowBook(string serialNumber, string UserId, string borrowCode)
         {
-            matricNumber = Uri.UnescapeDataString(matricNumber);
-            var student = await _context.Students.FirstOrDefaultAsync(s => s.MatricNumber == matricNumber);
+            UserId = Uri.UnescapeDataString(UserId);
+            var student = await _context.Users.FirstOrDefaultAsync(s => s.UserId == UserId);
             
             if (student == null)
             {
                 return NotFound(new { message = "Student not found." });
-            }
+            } 
+            var UserType = student.UserType;
             var department = student.Department;
             var school = student.School;
             var book = await _context.Books.FirstOrDefaultAsync(b => b.SerialNumber == serialNumber);
@@ -432,7 +309,7 @@ namespace LAS.Controllers
             }
 
             var pendingBorrow = await _context.PendingBorrows
-            .FirstOrDefaultAsync(pb => pb.MatricNumber == matricNumber && pb.SerialNumber == serialNumber && pb.BorrowCode == borrowCode);
+            .FirstOrDefaultAsync(pb => pb.UserId == UserId && pb.SerialNumber == serialNumber && pb.BorrowCode == borrowCode);
 
             if (pendingBorrow == null || !pendingBorrow.IsApproved)
             {
@@ -455,7 +332,7 @@ namespace LAS.Controllers
             // ✅ Check if student has reached their borrow limit
             int borrowLimit = student.GetBorrowLimit(); // Limit based on rating
             int currentlyBorrowed = await _context.BorrowRecords
-                .CountAsync(b => b.MatricNumber == matricNumber && !b.IsReturned);
+                .CountAsync(b => b.UserId == UserId && !b.IsReturned);
 
             if (currentlyBorrowed >= borrowLimit)
             {
@@ -464,7 +341,7 @@ namespace LAS.Controllers
 
             // Check if the user already borrowed this book
             var existingBorrow = await _context.BorrowRecords
-                .FirstOrDefaultAsync(b => b.MatricNumber == matricNumber && b.SerialNumber == serialNumber && !b.IsReturned);
+                .FirstOrDefaultAsync(b => b.UserId == UserId && b.SerialNumber == serialNumber && !b.IsReturned);
 
             if (existingBorrow != null)
             {
@@ -480,7 +357,8 @@ namespace LAS.Controllers
             {
                 Department= department,
                 School=school,
-                MatricNumber = matricNumber,
+                UserId = UserId,
+                UserType= UserType,
                 SerialNumber = serialNumber,
                 BorrowTime = DateTime.UtcNow,
                 AllowedBorrowHours = allowedBorrowHours,
@@ -505,69 +383,17 @@ namespace LAS.Controllers
                 borrowTime = borrowRecord.BorrowTime,
                 allowedBorrowHours,
                 dueDate,
-                borrowedBooks = _context.BorrowRecords.Count(b => b.MatricNumber == matricNumber && !b.IsReturned),
+                borrowedBooks = _context.BorrowRecords.Count(b => b.UserId == UserId && !b.IsReturned),
                 borrowLimit = borrowLimit
             });
         }
 
-
-
-
-        //[HttpPost("return/{serialNumber}/{matricNumber}")]
-        //public async Task<IActionResult> ReturnBook(string serialNumber, string matricNumber)
-        //{
-        //    var book = await _context.Books.FirstOrDefaultAsync(b => b.SerialNumber == serialNumber);
-        //    if (book == null)
-        //    {
-        //        return NotFound(new { message = "Book not found." });
-        //    }
-
-        //    // Find the borrow record
-        //    var borrowRecord = await _context.BorrowRecords
-        //        .FirstOrDefaultAsync(b => b.MatricNumber == matricNumber && b.SerialNumber == serialNumber && !b.IsReturned);
-
-        //    if (borrowRecord == null)
-        //    {
-        //        return BadRequest(new { message = "No active borrow record found." });
-        //    }
-
-        //    // Get student record
-        //    var student = await _context.Students.FirstOrDefaultAsync(s => s.MatricNumber == matricNumber);
-        //    if (student == null)
-        //    {
-        //        return NotFound(new { message = "Student not found." });
-        //    }
-
-        //    // Calculate late return
-        //    DateTime returnTime = DateTime.UtcNow;
-        //    bool isLate = returnTime > borrowRecord.DueDate;
-
-        //    // Mark as returned
-        //    borrowRecord.IsReturned = true;
-        //    borrowRecord.ReturnTime = returnTime;
-        //    book.Quantity += 1;
-
-        //    // Update rating
-        //    if (isLate)
-        //    {
-        //        student.Rating = Math.Max(1.0, student.Rating - 0.25); // Decrease rating for late return
-        //    }
-        //    else
-        //    {
-        //        student.Rating = Math.Min(10.0, student.Rating + 0.15); // Increase rating for early return
-        //    }
-
-        //    await _context.SaveChangesAsync();
-        //    return Ok(new { message = "Book returned successfully.", returnTime, isLate, newRating = student.Rating });
-        //}
-
-
-        [HttpPost("request-return/{serialNumber}/{matricNumber}")]
-        public async Task<IActionResult> RequestReturnCode(string serialNumber, string matricNumber)
+        [HttpPost("request-return/{serialNumber}/{UserId}")]
+        public async Task<IActionResult> RequestReturnCode(string serialNumber, string UserId)
         {
-            matricNumber = Uri.UnescapeDataString(matricNumber);
+            UserId = Uri.UnescapeDataString(UserId);
             var borrowRecord = await _context.BorrowRecords
-                .FirstOrDefaultAsync(b => b.MatricNumber == matricNumber && b.SerialNumber == serialNumber && !b.IsReturned);
+                .FirstOrDefaultAsync(b => b.UserId == UserId && b.SerialNumber == serialNumber && !b.IsReturned);
 
             if (borrowRecord == null)
             {
@@ -580,7 +406,7 @@ namespace LAS.Controllers
             // Save in PendingReturns table
             var pendingReturn = new PendingReturn
             {
-                MatricNumber = matricNumber,
+                UserId = UserId,
                 SerialNumber = serialNumber,
                 ReturnCode = returnCode,
                 RequestTime = DateTime.UtcNow,
@@ -596,36 +422,47 @@ namespace LAS.Controllers
         [HttpGet("pending-returns")]
         public async Task<IActionResult> GetPendingReturns()
         {
+            var currentTime = DateTime.UtcNow;
+            var expiryDuration = TimeSpan.FromHours(0.1);
+
+            // Get pending returns including expired ones
             var pendingReturns = await _context.PendingReturns
                 .Where(pr => !pr.IsApproved)
                 .Select(pr => new
                 {
                     pr.Id,
-                    pr.MatricNumber,
+                    pr.UserId,
                     pr.SerialNumber,
                     pr.ReturnCode,
                     pr.RequestTime,
-                    ExpiryTime = pr.RequestTime.AddHours(24) // Show expiration time
+                    ExpiryTime = pr.RequestTime.Add(expiryDuration) // Show expiration time
                 })
                 .ToListAsync();
+
+            // Find expired return requests
+            var expiredRequests = pendingReturns
+                .Where(pr => pr.ExpiryTime <= currentTime)
+                .ToList();
+
+            // Remove expired return requests from the database
+            if (expiredRequests.Any())
+            {
+                var expiredIds = expiredRequests.Select(pr => pr.Id).ToList();
+                var expiredEntities = await _context.PendingReturns
+                    .Where(pr => expiredIds.Contains(pr.Id))
+                    .ToListAsync();
+
+                _context.PendingReturns.RemoveRange(expiredEntities);
+                await _context.SaveChangesAsync();
+            }
 
             return Ok(pendingReturns);
         }
 
+
         [HttpPost("approve-return/{returnCode}")]
         public async Task<IActionResult> ApproveReturn(string returnCode)
         {
-            //var pendingReturn = await _context.PendingReturns.FindAsync(id);
-
-            //if (pendingReturn == null)
-            //{
-            //    return NotFound(new { message = "Return request not found." });
-            //}
-
-            //pendingReturn.IsApproved = true;
-            //await _context.SaveChangesAsync();
-
-            //return Ok(new { message = "Return request approved.", returnCode = pendingReturn.ReturnCode });
             var pendingReturn = await _context.PendingReturns
                 .FirstOrDefaultAsync(pb => pb.ReturnCode == returnCode && !pb.IsApproved);
 
@@ -641,10 +478,10 @@ namespace LAS.Controllers
 
         }
 
-        [HttpPost("return/{serialNumber}/{matricNumber}/{returnCode}")]
-        public async Task<IActionResult> ReturnBook(string serialNumber, string matricNumber, string returnCode)
+        [HttpPost("return/{serialNumber}/{UserId}/{returnCode}")]
+        public async Task<IActionResult> ReturnBook(string serialNumber, string UserId, string returnCode)
         {
-            matricNumber = Uri.UnescapeDataString(matricNumber);
+            UserId = Uri.UnescapeDataString(UserId);
             var book = await _context.Books.FirstOrDefaultAsync(b => b.SerialNumber == serialNumber);
             if (book == null)
             {
@@ -652,7 +489,7 @@ namespace LAS.Controllers
             }
 
             var borrowRecord = await _context.BorrowRecords
-                .FirstOrDefaultAsync(b => b.MatricNumber == matricNumber && b.SerialNumber == serialNumber && !b.IsReturned);
+                .FirstOrDefaultAsync(b => b.UserId == UserId && b.SerialNumber == serialNumber && !b.IsReturned);
 
             if (borrowRecord == null)
             {
@@ -661,7 +498,7 @@ namespace LAS.Controllers
 
             // Check if return code is valid
             var pendingReturn = await _context.PendingReturns
-                .FirstOrDefaultAsync(pr => pr.MatricNumber == matricNumber && pr.SerialNumber == serialNumber && pr.ReturnCode == returnCode);
+                .FirstOrDefaultAsync(pr => pr.UserId == UserId && pr.SerialNumber == serialNumber && pr.ReturnCode == returnCode);
 
             if (pendingReturn == null || !pendingReturn.IsApproved)
             {
@@ -669,7 +506,7 @@ namespace LAS.Controllers
             }
 
             // Expiration check (e.g., 24 hours)
-            if ((DateTime.UtcNow - pendingReturn.RequestTime).TotalHours > 24)
+            if ((DateTime.UtcNow - pendingReturn.RequestTime).TotalHours > 0.1)
             {
                 _context.PendingReturns.Remove(pendingReturn);
                 await _context.SaveChangesAsync();
@@ -683,7 +520,7 @@ namespace LAS.Controllers
             borrowRecord.ReturnTime = returnTime;
             book.Quantity += 1;
 
-            var student = await _context.Students.FirstOrDefaultAsync(s => s.MatricNumber == matricNumber);
+            var student = await _context.Users.FirstOrDefaultAsync(s => s.UserId == UserId);
             if (student != null)
             {
                 student.Rating = isLate ? Math.Max(1.0, student.Rating - 0.25) : Math.Min(10.0, student.Rating + 0.15);
@@ -719,8 +556,6 @@ namespace LAS.Controllers
             var imageFileStream = System.IO.File.OpenRead(imagePath);
             return File(imageFileStream, "image/png"); // Ensure the correct MIME type
         }
-
-
 
         // POST: api/Books (Create Book with Image)
         [HttpPost]
@@ -795,28 +630,23 @@ namespace LAS.Controllers
             return NoContent();
         }
         [HttpGet("borrow-history")]
-        public async Task<IActionResult> GetAllBorrowHistory([FromQuery]string? matricNumber, [FromQuery] string? serialnumber, [FromQuery] bool? overdue, [FromQuery] bool?IsReturned, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, [FromQuery] string? Department, [FromQuery] string? School)// [FromQuery] int? Level 
-        {   if(!string.IsNullOrEmpty(matricNumber))
+        public async Task<IActionResult> GetAllBorrowHistory([FromQuery]string? UserId, [FromQuery]string? UserType, [FromQuery] string? serialnumber, [FromQuery] bool? overdue, [FromQuery] bool?IsReturned, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, [FromQuery] string? Department, [FromQuery] string? School)// [FromQuery] int? Level 
+        {   if(!string.IsNullOrEmpty(UserId))
             {
-                matricNumber = Uri.UnescapeDataString(matricNumber);
+                UserId = Uri.UnescapeDataString(UserId);
             }
-            
             var query = _context.BorrowRecords.AsQueryable();
             if (startDate.HasValue)
             {
                 query = query.Where(b => b.BorrowTime >= startDate.Value);
             }
-            //if (!string.IsNullOrEmpty(Department))
-            //{
-            //    query = query.Where(b => b.Department == Department);
-            //}
-            //if (!string.IsNullOrEmpty(matricNumber))
-            //{
-            //    query = query.Where(b => b.MatricNumber == matricNumber);
-            //}
             if (!string.IsNullOrEmpty(Department))
             {
                 query = query.Where(b => b.Department.Contains(Department));
+            }
+            if (!string.IsNullOrEmpty(UserType))
+            {
+                query = query.Where(b => b.UserType.Contains(UserType));
             }
             if (!string.IsNullOrEmpty(serialnumber))
             {
@@ -827,9 +657,9 @@ namespace LAS.Controllers
             {
                 query = query.Where(b => b.School.Contains(School));
             }
-            if (!string.IsNullOrEmpty(matricNumber))
+            if (!string.IsNullOrEmpty(UserId))
             {
-                query = query.Where(b => b.MatricNumber.Contains(matricNumber));
+                query = query.Where(b => b.UserId.Contains(UserId));
             }
 
             if (endDate.HasValue)
@@ -837,8 +667,9 @@ namespace LAS.Controllers
                 query = query.Where(b => b.BorrowTime <= endDate.Value);
             }
 
+            if (overdue.HasValue)
             {
-                query = query.Where(b => b.overdue() == overdue); // If Overdue is truly bool
+                query = query.Where(b => b.Overdue == (overdue.Value ? true : false)); // If Overdue is truly bool
                                                                                        // OR, if Overdue is stored as int, use:
                                                                                        // query = query.Where(b => b.OverdueInt == (overdue.Value ? 1 : 0));
             }
@@ -848,25 +679,22 @@ namespace LAS.Controllers
             {
                 query = query.Where(b => b.IsReturned == IsReturned.Value);
             }
-            //if (Level.HasValue)
-            //{
-            //    query = query.Where(b => b.Level == Level);
-            //}
-
-
-
+            
             // Compute the statistics
+            var totalOverdue =await query.CountAsync(b => b.Overdue);
             var totalBorrowed = await query.CountAsync();
             var totalReturned = await query.CountAsync(b => b.IsReturned);
-            var totalLate = await query.CountAsync(b => b.IsReturned && b.ReturnTime > b.DueDate);
-            var totalNotReturned = await query.CountAsync(b => !b.IsReturned);
+            var totalLate = await query.CountAsync(b => b.ReturnTime > b.BorrowTime.AddHours(b.AllowedBorrowHours));
+            var totalEarly = await query.CountAsync(b => b.ReturnTime <= b.BorrowTime.AddHours(b.AllowedBorrowHours));
 
+            var totalNotReturned = await query.CountAsync(b => !b.IsReturned);
             var borrowHistory = await query
                 .Select(b => new
                 {
                     b.Department,
                     b.School,
-                    b.MatricNumber,
+                    b.UserId,
+                    b.UserType,
                     IsLateReturn = b.IsLateReturn(),
                     b.IsReturned,
                     b.SerialNumber,
@@ -879,7 +707,7 @@ namespace LAS.Controllers
                 .ToListAsync();
             
             return Ok(new
-            {
+            {   TotalOverdue= totalOverdue,
                 TotalBorrowed = totalBorrowed,
                 TotalReturned = totalReturned,
                 TotalLate = totalLate,
@@ -888,12 +716,12 @@ namespace LAS.Controllers
             });
         }
 
-        [HttpGet("borrow-history/{matricNumber}")]
-        public async Task<IActionResult> GetBorrowHistory(string matricNumber, [FromQuery] bool? overdue, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, [FromQuery] string? Department )
+        [HttpGet("borrow-history/{UserId}")]
+        public async Task<IActionResult> GetBorrowHistory(string UserId, [FromQuery] bool? overdue, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, [FromQuery] string? Department )
         {
-            matricNumber = Uri.UnescapeDataString(matricNumber);
+            UserId = Uri.UnescapeDataString(UserId);
             var query = _context.BorrowRecords
-                .Where(b => b.MatricNumber == matricNumber)
+                .Where(b => b.UserId == UserId)
                 .AsQueryable();
             
 
@@ -919,15 +747,14 @@ namespace LAS.Controllers
 
             var borrowHistory = await query
                 .Select(b => new
-                {
-                    b.Department,
-                    b.School,
+                {   
                     b.SerialNumber,
                     b.BorrowTime,
                     b.AllowedBorrowHours,
                     b.DueDate,
                     b.ReturnTime,
-                    IsOverdue = !b.IsReturned && b.DueDate < DateTime.UtcNow
+                    b.Overdue,
+                    LateReturn=b.IsLateReturn()
                 })
                 .ToListAsync();
 
@@ -990,7 +817,114 @@ namespace LAS.Controllers
             }
         }
 
+        [HttpGet("export")]
+        public async Task<IActionResult> ExportBooks()
+        {
+            var books = await _context.Books.ToListAsync();
 
+            using (var workbook = new XLWorkbook())
+            {
+                var worksheet = workbook.Worksheets.Add("Books");
+                worksheet.Cell(1, 1).Value = "Serial Number";
+                worksheet.Cell(1, 2).Value = "Name";
+                worksheet.Cell(1, 3).Value = "Author";
+                worksheet.Cell(1, 4).Value = "Year";
+                worksheet.Cell(1, 5).Value = "Quantity";
+                worksheet.Cell(1, 6).Value = "Image Path";
+                worksheet.Cell(1, 6).Value = "Description";
+
+                int row = 2;
+                foreach (var book in books)
+                {
+                    worksheet.Cell(row, 1).Value = book.SerialNumber;
+                    worksheet.Cell(row, 2).Value = book.Name;
+                    worksheet.Cell(row, 3).Value = book.Author;
+                    worksheet.Cell(row, 4).Value = book.Year;
+                    worksheet.Cell(row, 5).Value = book.Quantity;
+                    worksheet.Cell(row, 6).Value = book.ImagePath ?? "N/A";
+                    worksheet.Cell(row, 7).Value = book.Description;
+                    row++;
+                }
+
+                using (var stream = new MemoryStream())
+                {
+                    workbook.SaveAs(stream);
+                    var content = stream.ToArray();
+                    return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Books.xlsx");
+                }
+            }
+        }
+
+        [HttpPost("import")]
+        public async Task<IActionResult> ImportBooks(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("No file uploaded.");
+            }
+
+            using (var stream = new MemoryStream())
+            {
+                await file.CopyToAsync(stream);
+                using (var workbook = new XLWorkbook(stream))
+                {
+                    var worksheet = workbook.Worksheet(1);
+                    var rows = worksheet.RangeUsed().RowsUsed().Skip(1); // Skip header row
+
+                    var books = new List<Book>();
+                    var skippedBooks = new List<string>();
+
+                    foreach (var row in rows)
+                    {
+                        string serialNumber = row.Cell(1).GetString().Trim();
+                        string name = row.Cell(2).GetString().Trim();
+                        string author = row.Cell(3).GetString().Trim();
+                        string description = row.Cell(4).GetString().Trim();
+                        string image_path = row.Cell(5).GetString().Trim();
+                        int year;
+                        int quantity;
+
+                        if (string.IsNullOrEmpty(serialNumber) || string.IsNullOrEmpty(name) || string.IsNullOrEmpty(author) || string.IsNullOrEmpty(description)|| string.IsNullOrEmpty(image_path) ||
+                            !int.TryParse(row.Cell(6).GetString(), out year) || !int.TryParse(row.Cell(7).GetString(), out quantity))
+                        {
+                            skippedBooks.Add($"Row {row.RowNumber()}: Invalid or missing data.");
+                            continue;
+                        }
+
+                        if (await _context.Books.AnyAsync(b => b.SerialNumber == serialNumber))
+                        {
+                            skippedBooks.Add($"Row {row.RowNumber()}: Serial Number '{serialNumber}' already exists.");
+                            continue;
+                        }
+
+                        var book = new Book
+                        {
+                            SerialNumber = serialNumber,
+                            Name = name,
+                            Author = author,
+                            Year = year,
+                            Quantity = quantity,
+                            Description =description,
+                            ImagePath=image_path
+                        };
+
+                        books.Add(book);
+                    }
+
+                    if (books.Count > 0)
+                    {
+                        _context.Books.AddRange(books);
+                        await _context.SaveChangesAsync();
+                    }
+
+                    return Ok(new
+                    {
+                        message = $"{books.Count} books imported successfully.",
+                        skippedBooks = skippedBooks.Count > 0 ? skippedBooks : null
+                    });
+                }
+            }
+        }
 
         // DELETE: api/Books/{serialNumber} (Delete a book)
         [HttpDelete("{serialNumber}")]
@@ -1002,23 +936,19 @@ namespace LAS.Controllers
                 return NotFound(new { message = "Book not found." });
             }
 
-            // Delete book image (if it's not the default image)
-            //if (!string.IsNullOrEmpty(book.ImagePath) && book.ImagePath != "/images/default-book-cover.jpg")
-            //{
-            //    var imagePath = Path.Combine(_imageFolderPath, Path.GetFileName(book.ImagePath));
-            //    if (System.IO.File.Exists(imagePath))
-            //    {
-            //        System.IO.File.Delete(imagePath);
-            //    }
-            //}
+            
+                var imagePath = Path.Combine(_imageFolderPath, Path.GetFileName(book.ImagePath));
+                if (System.IO.File.Exists(imagePath))
+                {
+                    System.IO.File.Delete(imagePath);
+                }
+            
 
             _context.Books.Remove(book);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
-
-
         private async Task<string> SaveAndResizeImage(IFormFile file)
         {
             var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);

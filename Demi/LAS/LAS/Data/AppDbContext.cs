@@ -49,8 +49,13 @@ namespace LAS.Data
                 .HasIndex(s => s.Email)
                 .IsUnique();
 
+            modelBuilder.Entity<BorrowRecord>()
+                .Property(b => b.Overdue)
+                .HasConversion<bool>();
+
             base.OnModelCreating(modelBuilder);
         }
+       
 
 
 

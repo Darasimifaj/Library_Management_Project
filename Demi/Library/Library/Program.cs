@@ -1,4 +1,5 @@
-using LAS.Data;
+﻿using Library.Data;
+using Library.Data;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,7 +20,7 @@ builder.Services.AddCors(options =>
 
 // Add services to the container
 builder.Services.AddControllers()
-     .AddNewtonsoftJson(); 
+     .AddNewtonsoftJson();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(); // This correctly enables Swagger
 
@@ -41,7 +42,7 @@ app.UseCors("AllowAllOrigins");
 // Configure the HTTP request pipeline
 
 app.UseSwagger();
-    app.UseSwaggerUI();
+app.UseSwaggerUI();
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(uploadsPath),

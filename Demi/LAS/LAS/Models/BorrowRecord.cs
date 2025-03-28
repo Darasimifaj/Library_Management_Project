@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace LAS.Models
 {
@@ -15,7 +16,14 @@ namespace LAS.Models
         public DateTime DueDate { get; set; } // Calculated due date
         public DateTime? ReturnTime { get; set; } // Nullable return time
         public bool IsReturned { get; set; } = false;
-        
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public bool Overdue { get; private set; }
+
+
+        public bool overdue()
+        {
+            return !IsReturned && DateTime.UtcNow > DueDate;
+        }
 
 
         // Determines if the book was returned late

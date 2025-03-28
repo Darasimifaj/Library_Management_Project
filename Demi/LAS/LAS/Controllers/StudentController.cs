@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using LAS.Data;
+using LAS.Migrations;
 using LAS.Models;
 using LAS.Models.Dtos;
 using Microsoft.AspNetCore.Mvc;
@@ -155,22 +156,33 @@ namespace LAS.Controllers
                 student.Rating
             });
         }
-
+        
+        
         // ✅ LOGIN STUDENT
         [HttpPost("login")]
-        public IActionResult LoginStudent([FromBody] LoginStudentDto loginDto)
+        public IActionResult LoginStudent([FromQuery] string matricNo, [FromQuery]string password )
         {
-            if (loginDto == null || string.IsNullOrWhiteSpace(loginDto.Password))
+            if (string.IsNullOrWhiteSpace(password))
             {
                 return BadRequest("Invalid login data.");
             }
+            matricNo = Uri.UnescapeDataString(matricNo);
+            Console.WriteLine($"Decoded Matric Number: {matricNo}"); // Log the decoded value
+            var student = _context.Students
+    .FirstOrDefault(s => s.MatricNumber.Trim().ToLower() == matricNo.Trim().ToLower());
 
-            var student = _context.Students.FirstOrDefault(s => s.MatricNumber == loginDto.MatricNumber);
 
-            if (student == null || student.PasswordHash != HashPassword(loginDto.Password))
+
+            if (student == null)
             {
-                return Unauthorized("Invalid credentials.");
+                return NotFound("Student is not found.");
             }
+
+            if (student.PasswordHash != HashPassword(password))
+            {
+                return Unauthorized("Incorrect password.");
+            }
+
 
             return Ok(new
             {
