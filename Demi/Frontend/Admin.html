@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lecturer Login</title>
+    <link rel="stylesheet" href="Admin.css" />
+    <link rel="icon" type="image/x-icon" href="Logo/Frame (1).svg" />
+  </head>
+  <body>
+    <nav>
+      <section id="Main">
+        <div class="nav-container">
+          <div class="Logo">
+            <div><img src="Logo/Frame (1).svg" alt="Logo" /></div>
+            <h3>OOF-LAS</h3>
+          </div>
+          <div class="middle"></div>
+          <div class="main-nav">
+            <button id="open" class="Side">
+              <img src="MainImages/Full Hamburger (2).svg" alt="" />
+            </button>
+            <ul>
+              <li class="Home"><a href="Home.html">Home</a></li>
+              <li class="Admin"><a href="Admin.html">Admin</a></li>
+              <li class="Login"><a href="StudentLogin.html">User Login</a></li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="SideH">
+        <span
+          style="
+            display: flex;
+
+            padding: 0 20px;
+            color: #611991;
+          "
+        >
+          <div class="Logo">
+            <div><img src="Logo/Frame (1).svg" alt="Logo" /></div>
+            <h3>OOF-LAS</h3>
+          </div>
+          <div id="close" style="width: 50%">
+            <h1 style="text-align: end">X</h1>
+          </div>
+        </span>
+        <div class="nav-container2">
+          <ul>
+            <li class="Home"><a href="Home.html">Home</a></li>
+            <li class="Admin"><a href="Admin.html">Admin</a></li>
+            <li class="Login"><a href="StudentLogin.html">User Login</a></li>
+          </ul>
+        </div>
+      </section>
+    </nav>
+    <main>
+      <div class="LoginHeader">
+        <h1 style="color: #000000e8">Admin Login</h1>
+        <p style="color: #7b7e8b">Enter your login details</p>
+      </div>
+      <div class="Details-Cont">
+        <div class="RealDetails">
+          <!-- <div class="Toggle">
+                    <a style="color: #7B7E8B;" href="StudentLogin.html">Student</a>
+                    <span>/</span>
+                    <a style="color: #611991;" href="L.html">Lecturer</a>
+                </div> -->
+          <div class="DetTemp">
+            <p>Staff ID<span style="color: red">*</span></p>
+            <input type="text" id="matric" placeholder="Enter your Staff ID" />
+          </div>
+          <div class="DetTemp">
+            <p>Password <span style="color: red">*</span></p>
+            <input
+              type="password"
+              id="password"
+              placeholder="Enter your password"
+            />
+          </div>
+          <p
+            style="
+              margin-bottom: 20px;
+              color: #194ba1;
+              font-size: 14px;
+              font-weight: 400;
+            "
+            class="toggle-password"
+            onclick="togglePassword()"
+          >
+            Show Password
+          </p>
+          <button class="login-btn" onclick="login()">Login</button>
+          <p
+            style="color: red; text-align: center"
+            class="error-message"
+            id="error-message"
+          ></p>
+          <p style="color: #14212e">
+            No Account?<span
+              ><a
+                style="color: #003898; text-decoration: none; margin-left: 5px"
+                href=""
+                >Register Here</a
+              ></span
+            >
+          </p>
+          <p style="color: #14212e">
+            Forgot Password?
+            <span
+              ><a
+                style="color: #003898; text-decoration: none; margin-left: 5px"
+                href=""
+                >Click Here</a
+              ></span
+            >
+          </p>
+        </div>
+      </div>
+    </main>
+    <script src="Admin.js"></script>
+  </body>
+</html>

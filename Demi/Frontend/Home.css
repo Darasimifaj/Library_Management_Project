@@ -1,0 +1,268 @@
+@import url("https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Orelega+One&display=swap");
+
+:root {
+  --inria: "Inria Sans", sans-serif;
+  --inter: "Inter", sans-serif;
+  --oreg: "Orelega One", serif;
+}
+
+body {
+  background-color: #f7f7f7;
+  margin: 0;
+  font-family: var(--inter);
+}
+.Logo {
+  color: #611991;
+  width: 50%;
+  display: flex;
+  align-items: center;
+  gap: 3%;
+  justify-content: flex-start;
+  h3 {
+    font-family: var(--oreg);
+    font-weight: 550;
+    margin: 0;
+    font-size: 22px;
+    text-align: center;
+  }
+  div {
+    width: 50px;
+    display: flex;
+  }
+  img {
+    width: 100%;
+  }
+}
+.main-nav {
+  width: 50%;
+  display: flex;
+  justify-content: flex-end;
+}
+.main-nav ul {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8%;
+  font-size: 22px;
+  font-weight: normal;
+  list-style: none;
+  padding: 0px;
+  a {
+    text-decoration: none;
+  }
+}
+nav ul:hover {
+  cursor: pointer;
+}
+.Home a {
+  color: #003898;
+}
+.Admin a {
+  color: #000000e8;
+}
+.Login a {
+  color: #611991;
+}
+
+.nav-container {
+  width: 90%;
+  display: flex;
+}
+nav {
+  width: 100%;
+  position: fixed;
+  top: 0px;
+  background-color: #f7f7f7;
+}
+nav section {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  border-bottom: 2px solid #a8a8a8;
+}
+main {
+  margin-top: 150px;
+  h1 {
+    margin: 0 auto;
+    width: 80%;
+    font-size: 35px;
+    text-align: center;
+    color: #003898;
+    font-weight: 500;
+  }
+}
+.Logoname {
+  margin: 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  img {
+    margin: 10px auto;
+    width: 75px;
+  }
+  p {
+    font-size: 15px;
+    text-align: center;
+    margin: 0px;
+    font-weight: bold;
+  }
+}
+.Bablogo {
+  display: flex;
+  margin: 30px;
+  justify-content: center;
+
+  img {
+    width: 100px;
+  }
+  div {
+    display: flex;
+    justify-content: flex-end;
+    flex-direction: column;
+  }
+  h1 {
+    text-align: start;
+    margin: 0px;
+    font-weight: 600;
+    width: 100%;
+  }
+}
+.Temp {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 30px;
+  width: 100%;
+  justify-content: center;
+}
+.TempCard {
+  display: flex;
+  border: 2px solid #611991;
+  border-radius: 20px;
+  padding: 25px;
+  width: 80%;
+  max-width: 320px;
+  div {
+    display: flex;
+    justify-content: center;
+  }
+  p {
+    margin: 0 10px;
+    font-weight: 700;
+    font-size: 23px;
+  }
+}
+.TempTxt {
+  flex-direction: column;
+  width: 100%;
+}
+.Tempimg {
+  width: 100px;
+  img {
+    width: 100%;
+  }
+}
+/* Nav Responsive Start */
+.nav-container2 {
+  padding: 0 30%;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  height: auto;
+
+  li {
+    padding: 20px 0;
+    color: #611991;
+    font-weight: 500;
+    font-size: larger;
+  }
+  a {
+    text-decoration: none;
+  }
+  ul {
+    padding: 0px;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+  }
+}
+.nav-container2 li {
+  position: relative;
+  display: inline-block;
+}
+
+.nav-container2 li::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  height: 3px;
+
+  transition: width ease-in-out 0.5s;
+}
+.Home::after {
+  background-color: #003898;
+}
+.Admin::after {
+  background-color: #14212e;
+}
+.Login::after {
+  background-color: #611991;
+}
+
+.nav-container2 li:hover::after {
+  width: 100%; /* Expands smoothly */
+}
+.nav-container {
+  button {
+    background-color: transparent;
+    border: none;
+    width: 50px;
+    margin: 0px;
+    padding: 0;
+    /* img {
+      width: 100%;
+    } */
+  }
+  ul {
+    display: flex;
+    flex-direction: row;
+  }
+}
+#SideH {
+  align-items: center;
+  text-align: end;
+  flex-direction: column;
+  display: none;
+  h1:hover {
+    cursor: pointer;
+  }
+}
+.Side {
+  display: none;
+}
+#SideH {
+  span {
+    width: 90%;
+    border-bottom: 1px solid #14212e1c;
+  }
+}
+@media (max-width: 700px) {
+  .main-nav ul {
+    display: none;
+  }
+  .Side {
+    display: block;
+  }
+  .Temp {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+/* END */
+.Logo h3 {
+  margin: 20px 0;
+}

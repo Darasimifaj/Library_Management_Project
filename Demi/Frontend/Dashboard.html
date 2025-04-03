@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="Dashboard.css" />
+    <title>Dashboard</title>
+    <link rel="icon" type="image/x-icon" href="Logo/Frame (1).svg" />
+  </head>
+
+  <body>
+    <nav>
+      <div>
+        <img
+          src="Logo/Frame (1).svg"
+          alt=""
+          onclick="window.location.href='Home.html'"
+        />
+      </div>
+      <div class="Search">
+        <input type="text" name="" id="search" />
+        <button id="search_btn">
+          <img src="MainImages/Search.svg" alt="" />
+        </button>
+      </div>
+      <div class="profile-container" onclick="getdetails()">
+        <img
+          src="MainImages/Profile.svg"
+          alt="Profile Picture"
+          class="profile-pic"
+          onclick="togglePopup(event)"
+        />
+        <div id="popup" class="popup" onclick="event.stopPropagation()">
+          <p style="color: #b695cc; width: 100%" id="Email">
+            fajolou8555@student.babcock.edu.ng
+          </p>
+          <img src="MainImages/Profile.svg" alt="Profile Picture" />
+          <p style="color: #611991cc" id="Name">Hi, Oluwadaramisi</p>
+          <button onclick="logout()" class="logout-btn">Log Out</button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- <div class="dashboard">
+        <div class="header">
+            <img src="Logo/Frame (1).svg" alt="">
+            <div class="search_image">
+                <input type="text" /> <img src="MainImages/Search.svg" alt="" />
+            </div>
+            
+            <div class="profile-container" onclick="getdetails()">
+                <img src="MainImages/Profile.svg"alt="Profile Picture" class="profile-pic" onclick="togglePopup(event)">
+                <div id="popup" class="popup" onclick="event.stopPropagation()">
+                    <p style="color: #B695CC;width: 100%;" id="Email">fajolou8555@student.babcock.edu.ng</p>
+                    <img src="MainImages/Profile.svg" alt="Profile Picture">
+                    <p style="color: #611991CC;" id="Name">Hi, Oluwadaramisi</p>
+                    <button onclick="logout()" class="logout-btn">Log Out</button>
+                </div>
+            </div>
+        </div> -->
+    <h1 class="welcome_class"></h1>
+    <p class="subtitle_class">Here’s Your Dashboard</p>
+    <div class="grid">
+      <div class="Temp">
+        <div
+          style="background: #75fe42"
+          class="Tempcard"
+          onclick="window.location.href='UserStats.html'"
+        >
+          <div id="m">
+            <p style="color: #caffb7" class="pink_text">User</p>
+            <p class="pink_text" style="color: #ffffff">Stats</p>
+          </div>
+          <div id="p"><img src="MainImages/User.svg" alt="" /></div>
+        </div>
+        <div
+          style="background: #ffcc66"
+          class="Tempcard"
+          onclick="window.location.href='Browse.html'"
+        >
+          <div id="m">
+            <p style="color: #ffffff" class="yellow_text">Browse</p>
+            <p class="pink_text" style="color: #ffe6ae">Books</p>
+          </div>
+          <div id="p"><img src="MainImages/Browse.svg" alt="" /></div>
+        </div>
+      </div>
+
+      <div class="Temp">
+        <div
+          style="background: #f069e8"
+          class="Tempcard"
+          onclick="window.location.href='Return.html'"
+        >
+          <div id="m">
+            <p style="color: #f7a2f2" class="pink_text">Return</p>
+            <p class="pink_text" style="color: #ffffff">Books</p>
+          </div>
+          <div id="p"><img src="MainImages/Return.svg" alt="" /></div>
+        </div>
+        <div
+          style="background: #518ff8"
+          class="Tempcard"
+          onclick="window.location.href='Borrow.html'"
+        >
+          <div id="m">
+            <p style="color: #ffffff" class="blue_text">Borrow</p>
+            <p class="pink_text" style="color: #ffffff">Books</p>
+          </div>
+          <div id="p"><img src="MainImages/Borrow.svg" alt="" /></div>
+        </div>
+      </div>
+    </div>
+    <script src="Dashboard.js"></script>
+  </body>
+</html>

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Stats</title>
+    <link rel="icon" type="image/x-icon" href="Logo/Frame (1).svg" />
+    <link rel="stylesheet" href="Navigation.css" />
+    <link rel="stylesheet" href="UserStats.css" />
+  </head>
+  <body>
+    <nav>
+      <div id="SideH" class="SideH">
+        <ul>
+          <li style="padding: 10px; text-align: end">
+            <button
+              onclick="closeSidebar()"
+              id="close"
+              style="
+                background-color: transparent;
+                border: none;
+                color: white;
+                font-size: large;
+              "
+            >
+              x
+            </button>
+          </li>
+          <li>
+            <a href="Dashboard.html"><div>Dashboard</div></a>
+          </li>
+          <li>
+            <a href="Browse.html"><div>Browse</div></a>
+          </li>
+          <li>
+            <a href="Return.html"><div>Return Book</div></a>
+          </li>
+          <li>
+            <a href="Borrow.html"><div>Borrow Book</div></a>
+          </li>
+        </ul>
+        <div id="close2" style="width: 100%; background-color: #210036d0"></div>
+      </div>
+      <div class="nav">
+        <div
+          style="justify-content: center"
+          onclick="window.location.href='Home.html'"
+        >
+          <img src="Logo/Frame (1).svg" alt="" />
+          <p style="display: none">OOFO LAS</p>
+        </div>
+        <div class="Navi">
+          <ul>
+            <li>
+              <a href="Dashboard.html"><div>Dashboard</div></a>
+            </li>
+            <li>
+              <a href="Browse.html"><div>Browse</div></a>
+            </li>
+            <li>
+              <a href="Return.html"><div>Return Book</div></a>
+            </li>
+            <li>
+              <a href="Borrow.html"><div>Borrow Book</div></a>
+            </li>
+          </ul>
+        </div>
+        <div style="justify-content: center">
+          <img
+            src="MainImages/Profile.svg"
+            alt=""
+            onclick="togglePopup(event)"
+          />
+          <div id="popup1" class="popup" onclick="event.stopPropagation()">
+            <p style="color: #b695cc; width: 100%" id="Email">
+              fajolou8555@student.babcock.edu.ng
+            </p>
+            <img src="MainImages/Profile.svg" alt="Profile Picture" />
+            <p style="color: #611991cc" id="Name">Hi, Oluwadaramisi</p>
+            <button onclick="logout()" class="logout-btn">Log Out</button>
+          </div>
+        </div>
+      </div>
+      <div style="width: 100%; display: flex; justify-content: center">
+        <div class="Nav2">
+          <div class="SideBar">
+            <button id="open" class="Side">
+              <img src="MainImages/Hamburger-black.svg" alt="" />
+            </button>
+          </div>
+          <div style="justify-content: center">
+            <img
+              src="Logo/Frame (1).svg"
+              alt=""
+              onclick="window.location.href='Home.html'"
+            />
+            <p style="display: none">OOFO LAS</p>
+          </div>
+
+          <div style="justify-content: center" id="popup_Cont">
+            <img
+              src="MainImages/Profile.svg"
+              alt=""
+              onclick="togglePopup(event)"
+            />
+            <div id="popup" class="popup">
+              <p style="color: #b695cc; width: 100%" id="Email">
+                fajolou8555@student.babcock.edu.ng
+              </p>
+              <img src="MainImages/Profile.svg" alt="Profile Picture" />
+              <p style="color: #611991cc" id="Name">Hi, Oluwadaramisi</p>
+              <button onclick="logout()" class="logout-btn">Log Out</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+    <header>
+      <h1 class="Mainheader">User Performance and history</h1>
+      <div class="MainInfo">
+        <div class="UserRating">
+          <div style="width: 50%">
+            <img src="MainImages/UserRating.svg" alt="" />
+          </div>
+          <div class="Info">
+            <p>User rating</p>
+            <h1 class="rCategory">Good</h1>
+            <button onclick="window.location.href=`Rating.html`">
+              View more
+            </button>
+          </div>
+        </div>
+        <div class="filling"></div>
+        <div class="UserRating">
+          <div style="width: 50%">
+            <img src="MainImages/TotalBooksBorrowed.svg" alt="" />
+          </div>
+          <div class="Info">
+            <p>Total Books Borrowed</p>
+            <h1 class="TBB">180</h1>
+          </div>
+        </div>
+        <div class="filling"></div>
+        <div class="UserRating">
+          <div style="width: 50%">
+            <img src="MainImages/TotalBooksReturned.svg" alt="" />
+          </div>
+          <div class="Info">
+            <p>Total Books Returned</p>
+            <h1 class="TBR">120</h1>
+          </div>
+        </div>
+      </div>
+    </header>
+    <article>
+      <h1>Book History</h1>
+      <p>Borrowed Record</p>
+    </article>
+    <div class="filters">
+      <input type="text" id="serialNumber" placeholder="Serial Number" />
+      <!-- <select id="userType">
+        <option value="">User Type</option>
+        <option value="Student">Student</option>
+        <option value="Lecturer">Lecturer</option>
+      </select> -->
+      <select id="department">
+        <option value="">Department</option>
+        <option value="Computer Science">Computer Science</option>
+        <option value="Software Engineering">Software Engineering</option>
+      </select>
+      <select id="school">
+        <option value="">School</option>
+        <option value="School of Computing">School of Computing</option>
+        <option value="College of Health and Medical Sciences">
+          College of Health and Medical Sciences
+        </option>
+      </select>
+      <select id="overdue">
+        <option value="">Overdue</option>
+        <option value="true">True</option>
+        <option value="false">False</option>
+      </select>
+      <select id="isReturned">
+        <option value="">Returned</option>
+        <option value="true">True</option>
+        <option value="false">False</option>
+      </select>
+
+      <input type="date" id="startDate" />
+      <input type="date" id="endDate" />
+      <button id="search_btn">Search</button>
+    </div>
+    <section style="display: flex; justify-content: center">
+      <section style="overflow: auto" class="all_section">
+        <table class="active_table">
+          <tr class="active_title">
+            <th>Serial Number</th>
+            <th>Borrowed Time</th>
+            <th>Due Date</th>
+            <th>Return Time</th>
+            <th>Status</th>
+          </tr>
+
+          <!-- <tr class="active_data1">
+            <td>Book 1</td>
+            <td>3/3/2025 9:34:08 AM</td>
+            <td>3/5/2025 9:34:08 AM</td>
+            <td>3/3/2025 9:34:31 AM</td>
+            <td><button class="returned">Returned</button></td>
+          </tr>
+
+          <tr class="active_data2">
+            <td>Book 1</td>
+            <td>3/3/2025 9:34:08 AM</td>
+            <td>3/5/2025 9:34:08 AM</td>
+            <td>3/3/2025 9:34:31 AM</td>
+            <td><button class="due">Due</button></td>
+          </tr>
+
+          <tr class="active_data3">
+            <td>Book 1</td>
+            <td>3/3/2025 9:34:08 AM</td>
+            <td>3/3/2025 9:34:08 AM</td>
+            <td>3/3/2025 9:34:08 AM</td>
+            <td><button class="pending">Pending</button></td>
+          </tr>
+
+          <tr class="active_data4">
+            <td>Book 1</td>
+            <td>3/3/2025 9:34:08 AM</td>
+            <td>3/3/2025 9:34:08 AM</td>
+            <td>3/3/2025 9:34:08 AM</td>
+            <td><button class="late">Late</button></td>
+          </tr> -->
+        </table>
+      </section>
+    </section>
+    <div class="pagination">
+      <button id="prev_page" disabled>Previous</button>
+      <span id="page_info">Page 1 of 1</span>
+      <button id="next_page" disabled>Next</button>
+    </div>
+
+    <script src="Navigation.js"></script>
+    <script src="UserStats.js"></script>
+  </body>
+</html>
