@@ -11,6 +11,7 @@ namespace Library.Data
         public DbSet<BorrowRecord> BorrowRecords { get; set; }
         public DbSet<LateReturn> LateReturns { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<ApiKey> ApiKeys { get; set; }
         public DbSet<PendingBorrow> PendingBorrows { get; set; }
         public DbSet<PendingReturn> PendingReturns { get; set; }
         public DbSet<UserLoginHistory> UserLoginHistories { get; set; }

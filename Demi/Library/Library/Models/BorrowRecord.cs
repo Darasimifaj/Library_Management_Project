@@ -20,12 +20,13 @@ namespace Library.Models
         public DateTime? ReturnTime { get; set; }
         public bool IsReturned { get; set; } = false;
         [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-        public bool Overdue { get; private set; }
+        public bool Overdue { get; private set; }= false;
         public bool overdue()
         {
             return !IsReturned && DateTime.UtcNow > DueDate;
         }
-        public bool IsLateReturn() => ReturnTime.HasValue && ReturnTime.Value > DueDate;
-        public bool IsEarlyReturn() => ReturnTime.HasValue && ReturnTime.Value < DueDate;
+
+        public bool IsLateReturn => ReturnTime.HasValue && ReturnTime.Value > DueDate;
+        public bool IsEarlyReturn => ReturnTime.HasValue && ReturnTime.Value < DueDate;
     }
 }

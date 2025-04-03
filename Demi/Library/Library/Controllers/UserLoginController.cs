@@ -3,6 +3,7 @@ using Library.Data;
 
 using Library.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -69,7 +70,7 @@ namespace Library.Controllers
             }
 
             // Session handling
-            var sessionDuration = TimeSpan.FromHours(2);
+            var sessionDuration = TimeSpan.FromHours(0.5);
             var expiryTime = DateTime.UtcNow.Add(sessionDuration);
 
             var loginHistory = new UserLoginHistory
@@ -147,7 +148,7 @@ namespace Library.Controllers
 
             if (DateTime.UtcNow > lastLogin.SessionExpiry)
             {
-                user.IsLoggedIn = true;
+                user.IsLoggedIn = false;
                 lastLogin.LogoutTime = lastLogin.SessionExpiry; // Auto-logout at expiry time
                 await _context.SaveChangesAsync();
                 return Unauthorized("Session expired. You have been logged out.");
@@ -155,7 +156,11 @@ namespace Library.Controllers
 
             return Ok(new { message = "Session is still active" });
         }
-
+        [HttpGet("Login-History")]
+        public async Task<ActionResult<IEnumerable<UserLoginHistory>>> GetAllLogin()
+        {
+            return await _context.UserLoginHistories.ToListAsync();
+        }
 
     }
 }

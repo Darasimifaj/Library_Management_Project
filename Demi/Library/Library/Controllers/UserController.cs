@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Library.Data;
 using Library.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -26,6 +27,8 @@ namespace Library.Controllers
         [HttpGet]
         public async Task<ActionResult<object>> GetUsers()
         {
+            
+
             var users = await _context.Users
                 .Select(u => new
                 {
@@ -38,7 +41,12 @@ namespace Library.Controllers
                     u.IsAdmin,
                     u.Department,
                     u.School,
-                    u.Rating
+                    u.IsLoggedIn,
+                    u.IsActive,
+                    u.Rating,
+                    CurrentlyBorrowed = _context.BorrowRecords.Count(br => br.UserId == u.UserId && !br.IsReturned),
+                    
+                    borrowlimit=u.GetBorrowLimit()
                 }).ToListAsync();
 
             return Ok(users);
@@ -105,7 +113,9 @@ namespace Library.Controllers
 
             // Compute the statistics
             var total = await query.CountAsync();
-            
+            int currentlyBorrowed = await _context.BorrowRecords
+                .CountAsync(b => b.UserId == UserId && !b.IsReturned);
+
             var Users = await query
                 .Select(b => new
                 {
@@ -120,6 +130,8 @@ namespace Library.Controllers
                     b.Rating,
                     b.IsActive,
                     b.IsLoggedIn,
+                    CurrentlyBorrowed = _context.BorrowRecords.Count(br => br.UserId == b.UserId && !br.IsReturned),
+                    borrowlimit = b.GetBorrowLimit()
                 })
                 .ToListAsync();
 
@@ -177,6 +189,8 @@ namespace Library.Controllers
         [HttpGet("{UserId}")]
         public async Task<ActionResult<object>> GetUser(string UserId)
         {
+            int currentlyBorrowed = await _context.BorrowRecords
+                .CountAsync(b => b.UserId == UserId && !b.IsReturned);
             UserId = Uri.UnescapeDataString(UserId);
             var user = await _context.Users
                 .Where(u => u.UserId == UserId)
@@ -191,7 +205,10 @@ namespace Library.Controllers
                     u.IsAdmin,
                     u.Department,
                     u.School,
-                    u.Rating
+                    u.Rating,
+                    CurrentlyBorrowed = _context.BorrowRecords.Count(br => br.UserId == u.UserId && !br.IsReturned),
+                    borrowlimit = u.GetBorrowLimit(),
+                    RCategory =u.GetRatingCategory()
                 })
                 .FirstOrDefaultAsync();
 

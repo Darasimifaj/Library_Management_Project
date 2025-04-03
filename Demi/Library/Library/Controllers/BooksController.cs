@@ -364,6 +364,7 @@ namespace Library.Controllers
                 AllowedBorrowHours = allowedBorrowHours,
                 DueDate = dueDate,
                 IsReturned = false,
+               
                 
             };
 
@@ -630,88 +631,89 @@ namespace Library.Controllers
             return NoContent();
         }
         [HttpGet("borrow-history")]
-        public async Task<IActionResult> GetAllBorrowHistory([FromQuery]string? UserId, [FromQuery]string? UserType, [FromQuery] string? serialnumber, [FromQuery] bool? overdue, [FromQuery] bool?IsReturned, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, [FromQuery] string? Department, [FromQuery] string? School)// [FromQuery] int? Level 
-        {   if(!string.IsNullOrEmpty(UserId))
+        public async Task<IActionResult> GetAllBorrowHistory(
+    [FromQuery] string? UserId,
+    [FromQuery] string? UserType,
+    [FromQuery] string? serialnumber,
+    [FromQuery] bool? overdue,
+    [FromQuery] bool? IsReturned,
+    [FromQuery] DateTime? startDate,
+    [FromQuery] DateTime? endDate,
+    [FromQuery] string? Department,
+    [FromQuery] string? School,
+    [FromQuery] int pageNumber = 1,  // Default to page 1
+    [FromQuery] int pageSize = 10    // Default to 10 items per page
+)
+        {
+            if (!string.IsNullOrEmpty(UserId))
             {
                 UserId = Uri.UnescapeDataString(UserId);
             }
+
             var query = _context.BorrowRecords.AsQueryable();
+
             if (startDate.HasValue)
-            {
                 query = query.Where(b => b.BorrowTime >= startDate.Value);
-            }
             if (!string.IsNullOrEmpty(Department))
-            {
                 query = query.Where(b => b.Department.Contains(Department));
-            }
             if (!string.IsNullOrEmpty(UserType))
-            {
                 query = query.Where(b => b.UserType.Contains(UserType));
-            }
             if (!string.IsNullOrEmpty(serialnumber))
-            {
                 query = query.Where(b => b.SerialNumber.Contains(serialnumber));
-            }
-
             if (!string.IsNullOrEmpty(School))
-            {
                 query = query.Where(b => b.School.Contains(School));
-            }
             if (!string.IsNullOrEmpty(UserId))
-            {
                 query = query.Where(b => b.UserId.Contains(UserId));
-            }
-
             if (endDate.HasValue)
-            {
                 query = query.Where(b => b.BorrowTime <= endDate.Value);
-            }
-
             if (overdue.HasValue)
-            {
-                query = query.Where(b => b.Overdue == (overdue.Value ? true : false)); // If Overdue is truly bool
-                                                                                       // OR, if Overdue is stored as int, use:
-                                                                                       // query = query.Where(b => b.OverdueInt == (overdue.Value ? 1 : 0));
-            }
-
-
+                query = query.Where(b => b.Overdue == overdue.Value);
             if (IsReturned.HasValue)
-            {
                 query = query.Where(b => b.IsReturned == IsReturned.Value);
-            }
-            
-            // Compute the statistics
-            var totalOverdue =await query.CountAsync(b => b.Overdue);
+
+            // Total records before pagination
+            int totalRecords = await query.CountAsync();
+            int totalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
+            int currentlyBorrowed = await _context.BorrowRecords
+                .CountAsync(b => b.UserId == UserId && !b.IsReturned);
             var totalBorrowed = await query.CountAsync();
             var totalReturned = await query.CountAsync(b => b.IsReturned);
-            var totalLate = await query.CountAsync(b => b.ReturnTime > b.BorrowTime.AddHours(b.AllowedBorrowHours));
-            var totalEarly = await query.CountAsync(b => b.ReturnTime <= b.BorrowTime.AddHours(b.AllowedBorrowHours));
-
+            var totalLate = await query.CountAsync(b => b.IsReturned && b.ReturnTime > b.DueDate);
             var totalNotReturned = await query.CountAsync(b => !b.IsReturned);
-            var borrowHistory = await query
+
+            // Apply Pagination
+            var borrowHistory = await query.OrderByDescending(b => b.BorrowTime)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
                 .Select(b => new
                 {
                     b.Department,
                     b.School,
                     b.UserId,
                     b.UserType,
-                    IsLateReturn = b.IsLateReturn(),
+                    b.IsLateReturn,
                     b.IsReturned,
                     b.SerialNumber,
                     b.BorrowTime,
                     b.AllowedBorrowHours,
                     b.DueDate,
                     b.ReturnTime,
-                    b.Overdue
+                    b.Overdue,
+                    CurrentlyBorrowed = _context.BorrowRecords.Count(br => br.UserId == b.UserId && !br.IsReturned)
                 })
                 .ToListAsync();
-            
+
             return Ok(new
-            {   TotalOverdue= totalOverdue,
+            {
+                currentlyborrrowed = currentlyBorrowed,
                 TotalBorrowed = totalBorrowed,
                 TotalReturned = totalReturned,
                 TotalLate = totalLate,
                 TotalNotReturned = totalNotReturned,
+                TotalRecords = totalRecords,
+                TotalPages = totalPages,
+                PageSize = pageSize,
+                CurrentPage = pageNumber,
                 BorrowHistory = borrowHistory
             });
         }
@@ -740,26 +742,28 @@ namespace Library.Controllers
             }
 
             // Compute the statistics
+            int currentlyBorrowed = await _context.BorrowRecords
+                .CountAsync(b => b.UserId == UserId && !b.IsReturned);
             var totalBorrowed = await query.CountAsync();
             var totalReturned = await query.CountAsync(b => b.IsReturned);
             var totalLate = await query.CountAsync(b => b.IsReturned && b.ReturnTime > b.DueDate);
             var totalNotReturned = await query.CountAsync(b => !b.IsReturned);
 
-            var borrowHistory = await query
-                .Select(b => new
-                {   
+            var borrowHistory = await query.OrderByDescending(b => b.BorrowTime)
+                 .Select(b => new
+                {   b.IsReturned,
                     b.SerialNumber,
                     b.BorrowTime,
                     b.AllowedBorrowHours,
                     b.DueDate,
                     b.ReturnTime,
                     b.Overdue,
-                    LateReturn=b.IsLateReturn()
+                    b.IsLateReturn
                 })
                 .ToListAsync();
 
             return Ok(new
-            {
+            {   currentlyborrrowed =currentlyBorrowed,
                 TotalBorrowed = totalBorrowed,
                 TotalReturned = totalReturned,
                 TotalLate = totalLate,

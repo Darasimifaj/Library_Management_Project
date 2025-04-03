@@ -1,5 +1,6 @@
 ﻿using Library.Data;
 using Library.Data;
+using Library.Middleware;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -35,7 +36,7 @@ if (!Directory.Exists(uploadsPath))
 
 
 var app = builder.Build();
-
+//app.UseMiddleware<ApiKeyMiddleware>();
 app.UseCors("AllowAllOrigins");
 
 
