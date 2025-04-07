@@ -1,3 +1,4 @@
+applyDarkMode();
 // const search = document.getElementById("search").value.trim();
 // console.log(serialNumber);
 const ErrorMessage = document.getElementById("error_message");
@@ -58,3 +59,21 @@ Enter.addEventListener("click", async () => {
     console.error("Error Getting book", error);
   }
 });
+function applyDarkMode() {
+  if (localStorage.getItem("darkMode") === "enabled") {
+    document.body.classList.add("dark-mode");
+  }
+}
+
+
+
+
+document.getElementById("moon").onclick = function () {
+  document.body.classList.add("dark-mode");
+  localStorage.setItem("darkMode", "enabled"); // Store the preference
+};
+
+document.getElementById("sun").onclick = function () {
+  document.body.classList.remove("dark-mode");
+  localStorage.setItem("darkMode", "disabled"); // Store the preference
+};

@@ -11,6 +11,7 @@ body {
   background-color: #f7f7f7;
   margin: 0;
   font-family: var(--inter);
+  transition: ease-out 0.6s;
 }
 .Logo {
   color: #611991;
@@ -63,6 +64,7 @@ nav ul:hover {
 }
 .Login a {
   color: #611991;
+  border-bottom: 2px solid ;
 }
 .login-btn:hover {
   cursor: pointer;
@@ -76,6 +78,7 @@ nav {
   position: fixed;
   top: 0px;
   background-color: #f7f7f7;
+  transition: ease-out 0.6s;
 }
 nav section {
   display: flex;
@@ -225,6 +228,51 @@ main {
     flex-direction: row;
   }
 }
+ul li{
+  list-style: none;
+}
+ ul li .drop{
+  
+  display:none;
+} 
+#sun{
+  margin-bottom: 20px;
+}
+#sun, #moon {
+  box-sizing: border-box;
+}
+  ul li ul.drop  {
+    display: block;
+    
+}
+.bi-circle-half{
+  padding-left: 20px;
+}
+ul li  ul.drop { 
+padding: 15px;
+    width: 5%;
+    background: #ffffff;
+    position: absolute;
+   right: 20px;
+    display: none;
+  
+}
+ul li:hover ul.drop {
+ 
+  display: block;
+align-items:center ;
+  flex-direction:column ;
+}
+.account {
+  color:  #14212e;
+  
+}
+.account a{
+  color: #003898; 
+  text-decoration: none; 
+  margin-left: 5px
+  
+}
 #SideH {
   align-items: center;
   text-align: end;
@@ -257,4 +305,68 @@ main {
 /* END */
 .Logo h3 {
   margin: 20px 0;
+}
+
+.dark-mode{
+    background-color: #171717;
+  transition: ease-out 0.6s;
+}
+.dark-mode nav{
+    background-color: #171717;
+  transition: ease-out 0.6s;
+}
+.dark-mode .Home a {
+  color: #f0d9ff;
+ 
+}
+.dark-mode .Admin a {
+  color: #f0d9ff;
+}
+.dark-mode .Login a {
+  color: #f0d9ff;
+  border-bottom: 2px solid #f0d9ff ;
+}
+.dark-mode .Logo{
+  color: #c875ff;
+}
+.dark-mode .LoginHeader h1{
+  color: #f0d9ff;
+}
+.dark-mode .LoginHeader p{
+  color: #af9fba;
+}
+.dark-mode .DetTemp p{
+  color: rgb(255, 255, 255);
+}
+.dark-mode .toggle-password{
+  color: #0056ea;
+}
+.dark-mode .account {
+  color:  #89b6e2;
+}
+.dark-mode .account a{
+  color: #0057ec; 
+  text-decoration: none; 
+  margin-left: 5px
+}
+.dark-mode .Logoname p {
+  color: white;
+}
+.dark-mode .meet{
+  color: white;
+}
+.dark-mode .TempTxt{
+  color: white; 
+}
+.dark-mode #bi-circle-half{
+  color: white;
+}
+.dark-mode ul li  ul.drop {
+  background: #272626;
+}
+.dark-mode  .bi-brightness-high{
+  color: white;
+}
+.dark-mode  .bi-bi-moon{
+  color: white;
 }

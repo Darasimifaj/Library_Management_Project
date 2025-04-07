@@ -27,16 +27,16 @@
             </button>
           </li>
           <li>
-            <a href="Dashboard.html"><div>Dashboard</div></a>
+            <a href="Dashboard.html">Dashboard</a>
           </li>
           <li>
-            <a href="Browse.html"><div>Browse</div></a>
+            <a class="browse" href="Browse.html">Browse</a>
           </li>
           <li>
-            <a href="Return.html"><div>Return Book</div></a>
+            <a href="Return.html">Return Book</a>
           </li>
           <li>
-            <a href="Borrow.html"><div>Borrow Book</div></a>
+            <a href="Borrow.html">Borrow Book</div></a>
           </li>
         </ul>
         <div id="close2" style="width: 100%; background-color: #210036d0"></div>
@@ -72,15 +72,57 @@
             onclick="togglePopup(event)"
           />
           <div id="popup1" class="popup" onclick="event.stopPropagation()">
+            <div class="go">
+              <img src="MainImages/Profile.svg" alt="Profile Picture" />
+            <p id="Name">Hi, Oluwadaramisi</p>
             <p style="color: #b695cc; width: 100%" id="Email">
               fajolou8555@student.babcock.edu.ng
             </p>
-            <img src="MainImages/Profile.svg" alt="Profile Picture" />
-            <p style="color: #611991cc" id="Name">Hi, Oluwadaramisi</p>
-            <button onclick="logout()" class="logout-btn">Log Out</button>
+            </div>
+            <div class="logout-cont">
+              <div class="theme-container">
+                <div class="theme-toggle">
+                  <div id="bi-circle-half" style="color: rgb(94, 0, 128);">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-circle-half" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 0 8 1zm0 1A8 8 0 1 1 8 0a8 8 0 0 1 0 16" /> <span>  Change Theme</span>
+                      </svg>
+                     
+                    </div>
+              
+                    <div class="drop">
+                      <div class="drop-item" id="sun">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-brightness-high" viewBox="0 0 16 16">
+                          <path d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6m0 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8M8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0m0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13m8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5M3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8m10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0m-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707M4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708"/>  <span>  Light</span>
+                        </svg>
+                      
+                      </div>
+                      
+                      <div class="drop-item" id="moon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi-bi-moon" viewBox="0 0 16 16">
+                          <path d="M6 .278a.77.77 0 0 1 .08.858 7.2 7.2 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277q.792-.001 1.533-.16a.79.79 0 0 1 .81.316.73.73 0 0 1-.031.893A8.35 8.35 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 0 1 6 .278M4.858 1.311A7.27 7.27 0 0 0 1.025 7.71c0 4.02 3.279 7.276 7.319 7.276a7.32 7.32 0 0 0 5.205-2.162q-.506.063-1.029.063c-4.61 0-8.343-3.714-8.343-8.29 0-1.167.242-2.278.681-3.286"/>  <span>  Dark</span>
+                        </svg>
+                      
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="logout">
+                  <button onclick="logout()" class="logout-btn">
+                    <svg fill="#611991" xmlns="http://www.w3.org/2000/svg" width="24" height="24" id="logout">
+                      <path d="M15 24H1c-.6 0-1-.4-1-1V1c0-.6.4-1 1-1h14c.6 0 1 .4 1 1v7c0 .6-.4 1-1 1s-1-.4-1-1V2H2v20h12v-6c0-.6.4-1 1-1s1 .4 1 1v7c0 .6-.4 1-1 1z"></path>
+                      <path d="M23 13H8c-.6 0-1-.4-1-1s.4-1 1-1h15c.6 0 1 .4 1 1s-.4 1-1 1z"></path>
+                      <path d="M23 13c-.3 0-.5-.1-.7-.3l-4-4c-.4-.4-.4-1 0-1.4s1-.4 1.4 0l4 4c.4.4.4 1 0 1.4-.2.2-.4.3-.7.3z"></path>
+                      <path d="M19 17c-.3 0-.5-.1-.7-.3-.4-.4-.4-1 0-1.4l4-4c.4-.4 1-.4 1.4 0s.4 1 0 1.4l-4 4c-.2.2-.4.3-.7.3z"></path>
+                    </svg>
+                    <span>Log Out</span>
+                  </button>
+              
+                </div>
+   </div>  
           </div>
-        </div>
-      </div>
+    </div>
+   
+  </div>
       <div style="width: 100%; display: flex; justify-content: center">
         <div class="Nav2">
           <div class="SideBar">

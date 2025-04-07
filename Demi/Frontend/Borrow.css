@@ -1,9 +1,15 @@
+body{
+  transition: ease-out 0.6s;
+}
 header {
   margin: 50px 0px;
   text-align: center;
   font-size: 20px;
   font-style: italic;
   color: #8147a7;
+}
+ .note{
+  margin-top: 40px;
 }
 h4 {
   margin-top: 5px;
@@ -14,6 +20,7 @@ h5 {
   font-size: 15px;
   margin: 0px;
   margin-bottom: 10px;
+ 
 }
 main {
   align-items: center;
@@ -22,13 +29,18 @@ main {
   width: 100%;
   flex-direction: column;
 }
+.Serial{
+
+  flex-direction: column; 
+   justify-content: center;
+   }
 article {
   width: 80%;
 }
 input {
   font-size: 15px;
-  width: 80%;
-  margin-left: 10px;
+width: 100%;
+
   padding: 15px;
   border: 1px solid gray;
   border-radius: 6px;
@@ -49,7 +61,8 @@ h1 {
 }
 article {
   button {
-    margin: 20px 0px;
+    margin-top: 20px;
+    margin-left: 60px;
     border: none;
     border-radius: 9px;
     font-size: 15px;
@@ -58,4 +71,26 @@ article {
     padding: 15px;
     width: 70%;
   }
+}
+
+.dark-mode{
+   background-color: #171717;
+  transition: ease-out 0.6s;
+}
+.dark-mode nav{
+   background-color: #171717;
+  transition: ease-out 0.6s;
+}
+
+.dark-mode header{
+  color: #f0d9ff;
+}
+.dark-mode h4{
+  color: #f0d9ff;
+}
+.dark-mode h5{
+  color: #f0d9ff;
+}
+.dark-mode .Navi a {
+  color: #f0d9ff;
 }

@@ -55,3 +55,12 @@ h1 {
   align-items: flex-start;
   justify-content: center;
 }
+.dark-mode span h1{
+  color: #f0d9ff;
+}
+.dark-mode header{
+  color: #f0d9ff;
+}
+.dark-mode p,h1{
+  color: #f0d9ff;
+}

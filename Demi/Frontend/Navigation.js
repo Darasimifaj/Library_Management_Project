@@ -1,9 +1,9 @@
 const API_BASE_URL = "https://localhost:44354/api/userlogin";
 
 // Redirect to login if not logged in
-if (!sessionStorage.getItem("isLoggedIn")) {
-  window.location.href = "StudentLogin.html";
-}
+// if (!sessionStorage.getItem("isLoggedIn")) {
+//   window.location.href = "StudentLogin.html";
+// }
 
 // Function to handle user login
 // async function login(userId, password, role) {
@@ -195,3 +195,23 @@ document.addEventListener("DOMContentLoaded", async function () {
     alert(error.message);
   }
 });
+function applyDarkMode() {
+  if (localStorage.getItem("darkMode") === "enabled") {
+    document.body.classList.add("dark-mode");
+  }
+}
+
+// Apply dark mode immediately on page load to avoid flickering
+applyDarkMode();
+
+// Event listener for toggling to dark mode
+document.getElementById("moon").onclick = function () {
+  document.body.classList.add("dark-mode");
+  localStorage.setItem("darkMode", "enabled"); // Store the preference
+};
+
+
+document.getElementById("sun").onclick = function () {
+  document.body.classList.remove("dark-mode");
+  localStorage.setItem("darkMode", "disabled"); // Store the preference
+};

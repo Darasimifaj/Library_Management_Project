@@ -11,6 +11,7 @@ body {
   background-color: #f7f7f7;
   margin: 0;
   font-family: var(--inter);
+  transition: ease-out 0.6s;
 }
 .Logo {
   color: #611991;
@@ -60,6 +61,7 @@ nav ul:hover {
 }
 .Admin a {
   color: #000000e8;
+  border-bottom: 2px solid ;
 }
 .Login a {
   color: #611991;
@@ -74,6 +76,7 @@ nav {
   position: fixed;
   top: 0px;
   background-color: #f7f7f7;
+  transition: ease-out 0.6s;
 }
 nav section {
   display: flex;
@@ -159,7 +162,17 @@ main {
 .login-btn:hover {
   cursor: pointer;
 }
+.LoginHeader h1{
 
+  color: black;
+}
+.LoginHeader h1{
+
+  color: black;
+}
+.LoginHeader p{
+   color:  #7b7e8b;
+}
 /* @media (max-width: 700px) {
   .main-nav ul {
     display: none;
@@ -236,6 +249,48 @@ main {
     flex-direction: row;
   }
 }
+.toggle-password{
+  margin-bottom: 20px;
+  color: #194ba1;
+  font-size: 14px;
+  font-weight: 400;
+}
+ul li{
+  list-style: none;
+}
+ ul li .drop{
+  
+  display:none;
+} 
+#sun{
+  margin-bottom: 20px;
+}
+#sun, #moon {
+  box-sizing: border-box;
+}
+  ul li ul.drop  {
+    display: block;
+    
+}
+.bi-circle-half{
+  padding-left: 20px;
+}
+ul li  ul.drop {
+  
+padding: 15px;
+    width: 5%;
+    background: #ffffff;
+    position: absolute;
+   right: 20px;
+    display: none;
+  
+}
+ul li:hover ul.drop {
+ 
+  display: block;
+align-items:center ;
+  flex-direction:column ;
+}
 #SideH {
   align-items: center;
   text-align: end;
@@ -254,6 +309,14 @@ main {
     border-bottom: 1px solid #14212e1c;
   }
 }
+.account {
+  color:  #14212e;
+}
+.account a{
+  color: #003898; 
+  text-decoration: none; 
+  margin-left: 5px
+}
 @media (max-width: 700px) {
   .main-nav ul {
     display: none;
@@ -264,5 +327,60 @@ main {
   .RealDetails {
     width: 80%;
   }
+}
+
+.dark-mode{
+  background-color: #171717;
+  transition: ease-out 0.6s;
+}
+.dark-mode nav{
+  background-color: #171717;
+  transition: ease-out 0.6s;
+}
+.dark-mode .Home a {
+  color: #f0d9ff;
+ 
+}
+.dark-mode .Admin a {
+  color: #f0d9ff;
+  border-bottom: 2px solid #f0d9ff ;
+}
+.dark-mode .Login a {
+  color: #f0d9ff;
+}
+.dark-mode .LoginHeader h1{
+  color: #f0d9ff;
+}
+.dark-mode .LoginHeader p{
+  color: #af9fba;
+}
+.dark-mode .Logo{
+  color: #c875ff;
+}
+.dark-mode .DetTemp p{
+  color: rgb(255, 255, 255);
+}
+.dark-mode .toggle-password{
+  color: #0056ea;
+}
+.dark-mode .account {
+  color:  #89b6e2;
+}
+.dark-mode .account a{
+  color: #0057ec; 
+  text-decoration: none; 
+  margin-left: 5px
+}
+.dark-mode #bi-circle-half{
+  color: white;
+}
+.dark-mode ul li  ul.drop {
+  background-color: #171717;
+}
+.dark-mode  .bi-brightness-high{
+  color: white;
+}
+.dark-mode  .bi-bi-moon{
+  color: white;
 }
 /* END */

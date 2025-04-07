@@ -14,6 +14,28 @@ function togglePassword() {
   }
 }
 
+// Function to apply dark mode based on localStorage
+function applyDarkMode() {
+  if (localStorage.getItem("darkMode") === "enabled") {
+    document.body.classList.add("dark-mode");
+  }
+}
+
+// Apply dark mode immediately on page load to avoid flickering
+applyDarkMode();
+
+// Event listener for toggling to dark mode
+document.getElementById("moon").onclick = function () {
+  document.body.classList.add("dark-mode");
+  localStorage.setItem("darkMode", "enabled"); // Store the preference
+};
+
+// Event listener for toggling to light mode
+document.getElementById("sun").onclick = function () {
+  document.body.classList.remove("dark-mode");
+  localStorage.setItem("darkMode", "disabled"); // Store the preference
+};
+
 // async function login() {
 //   const matricNo = document.getElementById("matric").value;
 //   const password = document.getElementById("password").value;

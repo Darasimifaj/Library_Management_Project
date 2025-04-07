@@ -1,0 +1,23 @@
+h1 {
+  text-align: center;
+}
+
+main {
+  align-items: center;
+  flex-direction: column;
+  display: flex;
+
+  padding: 50px;
+}
+main button{
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 15px;
+  background-color: #611991;
+  width: 60%;
+  margin: 50px 0;
+}
+.dark-mode main h1{
+  color: #f0d9ff;
+}
