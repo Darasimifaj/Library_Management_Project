@@ -1,0 +1,227 @@
+*,
+*::after,
+*::before {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, Helvetica;
+}
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.header {
+  background-color: rgb(82, 82, 71);
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  width: 100%;
+}
+.main-content {
+  display: flex;
+  min-height: calc(100vh - 80px);
+}
+
+:root {
+  --bar-width: 40px;
+  --bar-height: 5px;
+  --hamburger-gap: 6px;
+  --foreground: #473546;
+  --background: white;
+  --hamburger-margin: 5px;
+  --animation-timing: 200ms ease in out;
+  --hamburger-height: calc(
+    (var(var(--bar-height))) * 3 + var(var(var(--hamburger-gap))) * 2
+  );
+}
+
+.hamburger-menu {
+  margin-top: 10px;
+  margin-left: 20px;
+  margin-bottom: 3px;
+  --x-width: calc(var(--hamburger-height) * 1.41421356237);
+  display: flex;
+  flex-direction: column;
+  gap: var(--hamburger-gap);
+  width: max-content;
+  top: var(--hamburger-margin);
+  left: var(--hamburger-margin);
+  z-index: 2;
+  cursor: pointer;
+}
+.all {
+  margin-top: 100px;
+}
+.hamburger-menu::before,
+.hamburger-menu::after,
+.hamburger-menu input {
+  content: "";
+  width: var(--bar-width);
+  height: var(--bar-height);
+  background-color: var(--foreground);
+  border-radius: 9999px;
+  transition: opacity var(--animation-timing), width var(--animation-timing),
+    rotate var(--animation-timing), translate var(--animation-timing),
+    background-color var(--animation-timing);
+  transform-origin: left center;
+}
+
+.hamburger-menu.hamburger-menu:has(input:checked) {
+  --foreground: rgb(20, 11, 20);
+  /* background:  rgb(49, 45, 45) ; */
+}
+
+.hamburger-menu:has(input:checked)::before {
+  rotate: 45deg;
+  width: var(--x-width);
+  translate: 0 calc(var(--bar-height) / -2);
+}
+
+.hamburger-menu:has(input:checked)::after {
+  rotate: -45deg;
+  /* width: var(--x-width);
+    translate: 0 calc(var(--bar-height) / 2); */
+}
+
+.hamburger-menu input {
+  appearance: none;
+  padding: 0;
+  margin: 0;
+  outline: none;
+  pointer-events: none;
+}
+
+.hamburger-menu input:checked {
+  opacity: 0;
+  width: 0;
+}
+.sidebar {
+  position: relative;
+  z-index: 1;
+  transition: translate var(--animation-timing);
+  translate: -100%;
+  padding-left: 20px;
+  padding-top: 20px;
+  background-color: var(--foreground);
+  color: var(--background);
+  max-width: 12rem;
+  min-height: 100vh;
+}
+
+.hamburger-menu:has(input:focus-visible)::before,
+.hamburger-menu:has(input:focus-visible)::after,
+.hamburger-menu input:focus-visible {
+  border: 1px solid var(--background);
+  box-shadow: 0 0 0 1px var(--foreground);
+}
+
+.hamburger-menu:has(input:checked) + .sidebar {
+  translate: 0;
+}
+.section-3 {
+  background-color: rgb(146, 140, 172);
+  border: 2px solid yellowgreen;
+  flex-grow: 1;
+  padding: 20px;
+  min-height: 100%;
+}
+.options {
+  margin-top: 5px;
+  border-radius: 10px;
+  background-color: rgb(150, 189, 207);
+  color: black;
+  width: 90px;
+  height: 30px;
+  outline: none;
+  cursor: pointer;
+  border: 2px solid rgb(124, 141, 150);
+}
+.options:hover {
+  background-color: rgb(115, 147, 160);
+}
+.tb {
+  background-color: grey;
+  border-radius: 10px;
+}
+a[href] {
+  text-decoration: none;
+  text-decoration: none;
+  color: #ffffff;
+}
+.totalBooks {
+  text-align: center;
+}
+.section-4 {
+  margin-top: 20px;
+  padding: 10px;
+  width: 100%;
+}
+
+.section-1 {
+  margin: 0;
+  padding: 0;
+}
+.content-wrapper {
+  display: flex;
+  flex: 1;
+}
+.main-content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.dots {
+  margin-top: 5px;
+  border-radius: 10px;
+  background-color: rgb(213, 222, 226);
+  color: black;
+  width: 40px;
+  height: 30px;
+  outline: none;
+  cursor: pointer;
+  border: 1px solid rgb(66, 69, 70);
+}
+.dots:hover {
+  background-color: rgb(157, 158, 158);
+}
+
+.box-5{
+margin-top: 50px;
+}
+.viewMore {
+  justify-content: flex-end;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  color: black;
+  width: 40px;
+  height: 30px;
+  outline: none;
+  cursor: pointer;
+  border: none;
+}
+.idk {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.content {
+  margin-top: 30px;
+}
+.graphB{
+    background-color: #007bff;
+    border: 2px solid #6c757d;
+    border-radius: 8px;
+    color: white;
+    height: 100%;
+    width: 100%;
+}
+@media (max-width: 768px) {
+  .header {
+    padding: 0.5rem;
+  }
+  .hamburger-menu {
+    margin-left: 20px;
+  }
+}
