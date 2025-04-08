@@ -90,10 +90,10 @@ async function login() {
 
     sessionStorage.setItem("sessionExpiry", data.sessionExpiry);
     sessionStorage.setItem("userId", userId);
+    console.log(response.json);
     sessionStorage.setItem("isLoggedIn", "true");
     alert(`Student login successful!`);
     window.location.href = "Dashboard.html";
-    console.log(response);
   } catch (error) {
     console.error("Login error:", error.message);
     errorMessage.textContent = error.message;
@@ -119,6 +119,13 @@ function closeSidebar() {
 document.addEventListener("DOMContentLoaded", function () {
   const closeButton = document.getElementById("close");
   const openButton = document.getElementById("open");
+
+  password.addEventListener("keypress", function (event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      login();
+    }
+  });
 
   if (closeButton) {
     closeButton.addEventListener("click", closeSidebar);

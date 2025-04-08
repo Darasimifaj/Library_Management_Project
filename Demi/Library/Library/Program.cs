@@ -16,7 +16,7 @@ builder.Services.AddCors(options =>
         });
 });
 
-
+builder.Services.AddHostedService<AutoReturnOnlineBooksService>();
 
 
 // Add services to the container

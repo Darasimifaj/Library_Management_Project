@@ -1,0 +1,27 @@
+main {
+  display: flex;
+}
+.SideBar {
+  padding: 20px;
+}
+ul {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  list-style: none;
+  padding: 0;
+  li {
+    padding: 10px;
+    border: 1px solid grey;
+    border-radius: 10px;
+  }
+
+  a {
+    color: black;
+    text-decoration: none;
+  }
+}
+
+.MainBar {
+  width: 80%;
+}

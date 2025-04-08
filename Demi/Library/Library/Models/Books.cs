@@ -21,5 +21,6 @@ namespace Library.Models  // ✅ Ensure correct namespace
         public string Description { get; set; }
         public int Quantity { get; set; }
         public string? ImagePath { get; set; }
+        public string? PDFPath { get; set; }
     }
 }

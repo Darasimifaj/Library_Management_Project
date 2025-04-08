@@ -14,10 +14,11 @@ document.addEventListener("DOMContentLoaded", () => {
       userId
     )}`
   )
-    .then((response) => response.json())
-    .then((data) => {
-      document.querySelector(".TLR").innerHTML = data.totalLateReturn;
-      document.querySelector(".TER").innerHTML = data.totalEarlyReturn;
+    .then((responsed) => responsed.json())
+    .then((datar) => {
+      console.log(userId);
+      document.querySelector(".TLR").innerHTML = datar.totalLateReturn || 0;
+      document.querySelector(".TER").innerHTML = datar.totalEarlyReturn || 0;
     })
     .catch((error) => console.error("Error fetching data:", error));
 });

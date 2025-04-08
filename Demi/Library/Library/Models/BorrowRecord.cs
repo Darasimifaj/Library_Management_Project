@@ -19,6 +19,7 @@ namespace Library.Models
         //public DateTime DueDate => BorrowTime.AddHours(AllowedBorrowHours);
         public DateTime? ReturnTime { get; set; }
         public bool IsReturned { get; set; } = false;
+        public bool IsOnline { get; set; } = false;
         [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public bool Overdue { get; private set; }= false;
         public bool overdue()

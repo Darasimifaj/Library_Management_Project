@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Custom PDF Viewer</title>
+    <style>
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        height: 100vh;
+      }
+
+      #wrapper {
+        display: flex;
+        height: 100%;
+      }
+
+      #mainContainer {
+        display: flex;
+        flex-direction: column;
+        background: white;
+        flex: 1;
+      }
+
+      #toolbar {
+        justify-content: space-between;
+        height: 40px;
+        background: white;
+        color: #bd5bca;
+        display: flex;
+        align-items: center;
+        padding: 15px;
+        gap: 10px;
+        user-select: none;
+      }
+
+      #pdfAndThumbContainer {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+      }
+
+      #thumbnailWrapper {
+        display: flex;
+        flex-direction: column;
+        width: 150px;
+        background: rgb(175, 174, 174);
+        overflow-y: auto;
+        transition: width 0.3s ease;
+      }
+
+      #thumbnailWrapper.hidden {
+        width: 0;
+        overflow: hidden;
+      }
+
+      #thumbnailContainer {
+        padding: 10px 0;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .thumbnailWrapper {
+        text-align: center;
+        padding: 5px;
+        color: white;
+        font-size: 14px;
+      }
+
+      .thumbnail {
+        width: 100px;
+        margin: 0 auto;
+        cursor: pointer;
+        border: 2px solid transparent;
+        display: block;
+      }
+
+      .thumbnail.active {
+        border-color: #42a5f5;
+      }
+
+      #pdfViewer {
+        overflow-y: auto;
+        flex: 1;
+        padding: 20px;
+        background: rgb(175, 174, 174);
+      }
+
+      canvas {
+        background: white;
+        margin-bottom: 10px;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      button {
+        background: #424242;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: #616161;
+      }
+
+      #loader {
+        position: fixed;
+        z-index: 1000;
+        background: rgba(255, 255, 255, 0.85);
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .spinner {
+        width: 50px;
+        height: 50px;
+        border: 6px solid #ccc;
+        border-top: 6px solid #2f2f2f;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body oncontextmenu="return false">
+    <div id="loader">
+      <div class="spinner"></div>
+    </div>
+    <div id="wrapper">
+      <div id="mainContainer">
+        <div id="toolbar">
+          <div style="display: flex">
+            <button id="toggleSidebar">☰</button>
+            <p>Name</p>
+          </div>
+          <div>
+            <span id="pageInfo">Page 1 / 1</span>
+          </div>
+          <div>
+            <button id="zoomOut">-</button>
+            <span id="zoomLevel">100%</span>
+            <button id="zoomIn">+</button>
+          </div>
+        </div>
+        <div id="pdfAndThumbContainer">
+          <div id="thumbnailWrapper">
+            <div id="thumbnailContainer"></div>
+          </div>
+          <div id="pdfViewer"></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+      const pdfjsLib = window["pdfjs-dist/build/pdf"];
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+      const serialNumber = localStorage.getItem("selectedSerial");
+      const url = `https://localhost:44355/api/Books/PDF/BOOK1`;
+
+      let pdfDoc = null;
+      let scale = 1.0;
+      let currentPage = 1;
+
+      const viewer = document.getElementById("pdfViewer");
+      const thumbnailWrapper = document.getElementById("thumbnailWrapper");
+      const thumbnailContainer = document.getElementById("thumbnailContainer");
+      const pageInfo = document.getElementById("pageInfo");
+      const zoomLevel = document.getElementById("zoomLevel");
+      const toggleSidebar = document.getElementById("toggleSidebar");
+
+      toggleSidebar.onclick = () => {
+        thumbnailWrapper.classList.toggle("hidden");
+      };
+
+      const renderPage = (page, container, scale) => {
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        const viewport = page.getViewport({ scale });
+
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        container.appendChild(canvas);
+
+        page.render({ canvasContext: context, viewport });
+      };
+
+      const renderThumbnails = async (pdf) => {
+        const thumbs = [];
+
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+          const page = await pdf.getPage(pageNum);
+          const canvas = document.createElement("canvas");
+          canvas.classList.add("thumbnail");
+          const context = canvas.getContext("2d");
+          const viewport = page.getViewport({ scale: 0.25 });
+
+          canvas.height = viewport.height;
+          canvas.width = viewport.width;
+
+          await page.render({ canvasContext: context, viewport }).promise;
+
+          const wrapper = document.createElement("div");
+          wrapper.classList.add("thumbnailWrapper");
+          wrapper.appendChild(canvas);
+
+          const label = document.createElement("div");
+          label.textContent = pageNum;
+          wrapper.appendChild(label);
+
+          canvas.onclick = () => {
+            document
+              .getElementById(`page${pageNum}`)
+              .scrollIntoView({ behavior: "smooth" });
+          };
+
+          thumbs.push({ pageNum, wrapper });
+        }
+
+        thumbs.sort((a, b) => a.pageNum - b.pageNum);
+        thumbs.forEach(({ wrapper }) =>
+          thumbnailContainer.appendChild(wrapper)
+        );
+        return Promise.resolve();
+      };
+
+      const renderAllPages = () => {
+        viewer.innerHTML = "";
+        for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
+          pdfDoc.getPage(pageNum).then((page) => {
+            const pageDiv = document.createElement("div");
+            pageDiv.id = `page${pageNum}`;
+            viewer.appendChild(pageDiv);
+            renderPage(page, pageDiv, scale);
+          });
+        }
+      };
+
+      const updateZoomDisplay = () => {
+        zoomLevel.textContent = `${Math.round(scale * 100)}%`;
+      };
+
+      document.getElementById("zoomIn").onclick = () => {
+        scale = Math.min(scale + 0.1, 2);
+        updateZoomDisplay();
+        renderAllPages();
+      };
+
+      document.getElementById("zoomOut").onclick = () => {
+        scale = Math.max(scale - 0.1, 0.5);
+        updateZoomDisplay();
+        renderAllPages();
+      };
+
+      document.getElementById("loader").style.display = "flex";
+
+      fetch(url)
+        .then((res) => res.blob())
+        .then((blob) => {
+          const fileURL = URL.createObjectURL(blob);
+          return pdfjsLib.getDocument(fileURL).promise;
+        })
+        .then((pdf) => {
+          pdfDoc = pdf;
+          pageInfo.textContent = `Page 1 / ${pdf.numPages}`;
+          renderAllPages();
+          renderThumbnails(pdf).then(() => {
+            document.getElementById("loader").style.display = "none";
+          });
+        })
+        .catch((error) => {
+          console.error("Error loading PDF:", error);
+          document.getElementById("loader").style.display = "none";
+        });
+
+      viewer.addEventListener("scroll", () => {
+        const pages = Array.from(viewer.children);
+        for (let i = 0; i < pages.length; i++) {
+          const rect = pages[i].getBoundingClientRect();
+          if (rect.top >= 0 && rect.bottom <= window.innerHeight) {
+            currentPage = i + 1;
+            pageInfo.textContent = `Page ${currentPage} / ${pdfDoc.numPages}`;
+
+            document
+              .querySelectorAll(".thumbnail")
+              .forEach((thumb) => thumb.classList.remove("active"));
+            const activeThumb =
+              document.querySelectorAll(".thumbnail")[currentPage - 1];
+            if (activeThumb) activeThumb.classList.add("active");
+
+            break;
+          }
+        }
+      });
+    </script>
+  </body>
+</html>

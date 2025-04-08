@@ -25,16 +25,22 @@ namespace Library.Controllers
     public class BooksController : ControllerBase
     {
         private readonly AppDbContext _context;
-        private readonly string _imageFolderPath;
 
+        private readonly string _imageFolderPath;
+        private readonly string _PDFFolderPath;
         public BooksController(AppDbContext context)
         {
             _context = context;
             _imageFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
+            _PDFFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Book");
 
             if (!Directory.Exists(_imageFolderPath))
             {
                 Directory.CreateDirectory(_imageFolderPath);
+            }
+            if (!Directory.Exists(_PDFFolderPath))
+            {
+                Directory.CreateDirectory(_PDFFolderPath);
             }
         }
 
@@ -73,10 +79,10 @@ namespace Library.Controllers
                 switch (filter.ToLower())
                 {
                     case "available":
-                        books = books.Where(b => b.Quantity > 0);
+                        books = books.Where(b => b.Quantity > 0||b.PDFPath == null);
                         break;
                     case "unavailable":
-                        books = books.Where(b => b.Quantity == 0);
+                        books = books.Where(b => b.Quantity == 0||b.PDFPath==null);
                         break;
                 }
             }
@@ -128,6 +134,7 @@ namespace Library.Controllers
                     b.Year,
                     b.Description,
                     b.Quantity,
+                    b.PDFPath,
                     Image = $"{Request.Scheme}://{Request.Host}/uploads/{b.ImagePath}".Replace("//", "/") // FIXED DOUBLE SLibraryH ISSUE
                 })
                 .FirstOrDefaultAsync();
@@ -171,6 +178,39 @@ namespace Library.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "An error occurred while saving the image.", error = ex.Message });
+            }
+        }
+        [HttpPatch("upload-PDF")]
+        public async Task<IActionResult> UploadBookPDF([FromQuery] string serialNumber, IFormFile file)
+        {
+            if (string.IsNullOrEmpty(serialNumber))
+            {
+                return BadRequest(new { message = "Serial Number is required." });
+            }
+
+            var book = await _context.Books.FirstOrDefaultAsync(b => b.SerialNumber == serialNumber);
+            if (book == null)
+            {
+                return NotFound(new { message = "Book not found." });
+            }
+
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest(new { message = "No PDF uploaded." });
+            }
+
+            try
+            {
+                // Save the image and update the database
+                var filePath = await SavePDF(file);
+                book.PDFPath = filePath ?? string.Empty; // Ensure it's not NULL
+
+                await _context.SaveChangesAsync();
+                return Ok(new { message = "PDF uploaded successfully.", PDFPath = book.PDFPath });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while saving the PDF.", error = ex.Message });
             }
         }
 
@@ -332,7 +372,7 @@ namespace Library.Controllers
             // ✅ Check if student has reached their borrow limit
             int borrowLimit = student.GetBorrowLimit(); // Limit based on rating
             int currentlyBorrowed = await _context.BorrowRecords
-                .CountAsync(b => b.UserId == UserId && !b.IsReturned);
+                .CountAsync(b => b.UserId == UserId && !b.IsReturned&&!b.IsOnline);
 
             if (currentlyBorrowed >= borrowLimit)
             {
@@ -349,7 +389,7 @@ namespace Library.Controllers
             }
 
             // Allowed borrow time (e.g., 48 hours)
-            float allowedBorrowHours = 0.1F;
+            float allowedBorrowHours = student.UserType == "Lecturer" ? 96 : 48;
             DateTime dueDate = DateTime.UtcNow.AddHours(allowedBorrowHours);
 
             // Create borrow record
@@ -386,6 +426,71 @@ namespace Library.Controllers
                 dueDate,
                 borrowedBooks = _context.BorrowRecords.Count(b => b.UserId == UserId && !b.IsReturned),
                 borrowLimit = borrowLimit
+            });
+        }
+
+        [HttpPost("borrowOnline/{serialNumber}/{userId}")]
+        public async Task<IActionResult> BorrowBookOnline(string serialNumber, string userId)
+        {
+            userId = Uri.UnescapeDataString(userId);
+            var student = await _context.Users.FirstOrDefaultAsync(s => s.UserId == userId);
+
+            if (student == null)
+            {
+                return NotFound(new { message = "Student not found."+userId });
+            }
+            var UserType = student.UserType;
+            var department = student.Department;
+            var school = student.School;
+            var book = await _context.Books.FirstOrDefaultAsync(b => b.SerialNumber == serialNumber);
+            if (book == null)
+            {
+                return NotFound(new { message = "Book not found." });
+            }
+
+            
+
+            // Check if the user already borrowed this book
+            var existingBorrow = await _context.BorrowRecords
+                .FirstOrDefaultAsync(b => b.UserId == userId && b.SerialNumber == serialNumber && !b.IsReturned&& b.IsOnline);
+
+            if (existingBorrow != null)
+            {
+                return BadRequest(new { message = "You have already borrowed this book." });
+            }
+
+            // Allowed borrow time (e.g., 48 hours)
+            float allowedBorrowHours =1 ;
+            DateTime dueDate = DateTime.UtcNow.AddHours(allowedBorrowHours);
+
+            // Create borrow record
+            var borrowRecord = new BorrowRecord
+            {
+                Department = department,
+                School = school,
+                UserId = userId,
+                UserType = UserType,
+                SerialNumber = serialNumber,
+                BorrowTime = DateTime.UtcNow,
+                AllowedBorrowHours = allowedBorrowHours,
+                DueDate = dueDate,
+                IsReturned = false,
+                IsOnline=true
+            };
+
+          
+
+            _context.BorrowRecords.Add(borrowRecord);
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Book borrowed successfully.",
+                borrowTime = borrowRecord.BorrowTime,
+                allowedBorrowHours,
+                dueDate,
+                
             });
         }
 
@@ -490,7 +595,7 @@ namespace Library.Controllers
             }
 
             var borrowRecord = await _context.BorrowRecords
-                .FirstOrDefaultAsync(b => b.UserId == UserId && b.SerialNumber == serialNumber && !b.IsReturned);
+                .FirstOrDefaultAsync(b => b.UserId == UserId && b.SerialNumber == serialNumber && !b.IsReturned&&!b.IsOnline);
 
             if (borrowRecord == null)
             {
@@ -557,10 +662,78 @@ namespace Library.Controllers
             var imageFileStream = System.IO.File.OpenRead(imagePath);
             return File(imageFileStream, "image/png"); // Ensure the correct MIME type
         }
+        [HttpGet("PDF/{serialNumber}")]
+        public IActionResult GetBookPDF(string serialNumber)
+        {
+            var book = _context.Books.FirstOrDefault(b => b.SerialNumber == serialNumber);
+            if (book == null || string.IsNullOrEmpty(book.PDFPath))
+            {
+                return NotFound(new { message = "Book or PDF not found" });
+            }
+
+            // Build full path to the file
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Book");
+            var PDFPath = Path.Combine(uploadsFolder, Path.GetFileName(book.PDFPath));
+
+            // Check if the file actually exists
+            if (!System.IO.File.Exists(PDFPath))
+            {
+                return NotFound(new { message = "PDF file does not exist", path = PDFPath });
+            }
+
+            var fileStream = System.IO.File.OpenRead(PDFPath);
+            var fileName = Path.GetFileName(PDFPath);
+
+            return File(fileStream, "application/pdf", fileName);
+        }
+
+        [HttpGet("PDFReader/{serialNumber}/{userId}")]
+        public IActionResult GetBookPDF(string serialNumber, string userId)
+        {
+            userId = Uri.UnescapeDataString(userId);
+            try
+            {
+                // Fetch the book by its serial number
+                var book = _context.Books.FirstOrDefault(b => b.SerialNumber == serialNumber);
+                if (book == null || string.IsNullOrEmpty(book.PDFPath))
+                {
+                    return NotFound(new { message = "Book or PDF not found" });
+                }
+
+                // Fetch the borrow record for the user and the specific book
+                var borrowRecord = _context.BorrowRecords
+                    .FirstOrDefault(br => br.UserId == userId && br.SerialNumber == serialNumber && br.IsOnline == true && !br.IsReturned);
+
+                if (borrowRecord == null)
+                {
+                    return BadRequest(new { message = "No active borrow record found, or the book has been returned" });
+                }
+
+                // Build full path to the file
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Book");
+                var PDFPath = Path.Combine(uploadsFolder, Path.GetFileName(book.PDFPath));
+
+                // Check if the file actually exists
+                if (!System.IO.File.Exists(PDFPath))
+                {
+                    return NotFound(new { message = "PDF file does not exist", path = PDFPath });
+                }
+
+                var fileStream = System.IO.File.OpenRead(PDFPath);
+                var fileName = book.Name;
+
+                return File(fileStream, "application/pdf", fileName);
+            }
+            catch (Exception ex)
+            {
+                // Log the error if necessary
+                return StatusCode(500, new { message = "An error occurred while processing your request", error = ex.Message });
+            }
+        }
 
         // POST: api/Books (Create Book with Image)
         [HttpPost]
-        public async Task<ActionResult<Book>> CreateBook([FromForm] CreateBookDto createBookDto, IFormFile file)
+        public async Task<ActionResult<Book>> CreateBook([FromForm] CreateBookDto createBookDto, IFormFile file,IFormFile? PDF)
         {
             if (!ModelState.IsValid)
             {
@@ -571,6 +744,9 @@ namespace Library.Controllers
             {
                 return BadRequest(new { message = "An image is required." });
             }
+
+           
+
 
             if (await _context.Books.AnyAsync(b => b.SerialNumber == createBookDto.SerialNumber))
             {
@@ -585,7 +761,8 @@ namespace Library.Controllers
                 Year = createBookDto.Year,
                 Description = createBookDto.Description,
                 Quantity = createBookDto.Quantity,
-                ImagePath = await SaveAndResizeImage(file)
+                ImagePath = await SaveAndResizeImage(file),
+                PDFPath= await SavePDF(PDF)
             };
 
             _context.Books.Add(book);
@@ -637,6 +814,7 @@ namespace Library.Controllers
     [FromQuery] string? serialnumber,
     [FromQuery] bool? overdue,
     [FromQuery] bool? IsReturned,
+    [FromQuery] bool? IsOnline,
     [FromQuery] DateTime? startDate,
     [FromQuery] DateTime? endDate,
     [FromQuery] string? Department,
@@ -670,6 +848,8 @@ namespace Library.Controllers
                 query = query.Where(b => b.Overdue == overdue.Value);
             if (IsReturned.HasValue)
                 query = query.Where(b => b.IsReturned == IsReturned.Value);
+            if (IsOnline.HasValue)
+                query = query.Where(b => b.IsOnline == IsOnline.Value);
 
             // Total records before pagination
             int totalRecords = await query.CountAsync();
@@ -946,7 +1126,12 @@ namespace Library.Controllers
                 {
                     System.IO.File.Delete(imagePath);
                 }
-            
+            var PDFPath = Path.Combine(_imageFolderPath, Path.GetFileName(book.PDFPath));
+            if (System.IO.File.Exists(PDFPath))
+            {
+                System.IO.File.Delete(PDFPath);
+            }
+
 
             _context.Books.Remove(book);
             await _context.SaveChangesAsync();
@@ -968,5 +1153,27 @@ namespace Library.Controllers
 
             return "/images/" + uniqueFileName;
         }
+        private async Task<string> SavePDF(IFormFile file)
+        {
+            // Ensure it's a PDF
+            if (file == null || Path.GetExtension(file.FileName).ToLower() != ".pdf")
+                throw new InvalidOperationException("Invalid file type. Only PDFs are allowed.");
+
+            // Generate unique name and path
+            var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+            var filePath = Path.Combine(_PDFFolderPath, uniqueFileName);
+
+            // Save to disk
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            // Return the relative URL or path
+            return "/pdfs/" + uniqueFileName; // Adjust based on how your static files are served
+        }
+
     }
+
 }
+   

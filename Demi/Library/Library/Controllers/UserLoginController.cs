@@ -1,11 +1,13 @@
 ﻿using DocumentFormat.OpenXml.Spreadsheet;
 using Library.Data;
-
+using System.Security;
 using Library.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using System.Security.Cryptography;
 
 namespace Library.Controllers
 {
@@ -60,13 +62,13 @@ namespace Library.Controllers
             // ❌ Check if the user is deactivated
             if (!user.IsActive)
             {
-                return Unauthorized("Account is deactivated. Please contact the admin.");
+                return Unauthorized(new { message = "Account is deactivated. Please contact the admin." }); 
             }
 
             // Verify password
-            if (BCrypt.Net.BCrypt.HashPassword(dto.Password) == user.PasswordHash)
+            if (HashPassword(dto.Password) != user.PasswordHash)
             {
-                return Unauthorized($"Invalid {userType} credentials.");
+                return Unauthorized(new { message = $"Invalid {userType} credentials." });
             }
 
             // Session handling
@@ -91,7 +93,19 @@ namespace Library.Controllers
                 sessionExpiry = expiryTime
             });
         }
-
+        private string HashPassword(string password)
+        {
+            using (var sha256 = SHA256.Create())
+            {
+                byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+                StringBuilder builder = new StringBuilder();
+                foreach (byte b in bytes)
+                {
+                    builder.Append(b.ToString("x2"));
+                }
+                return builder.ToString();
+            }
+        }
         [HttpPost("logout")]
         public async Task<IActionResult> Logout([FromQuery] string userId)
         {

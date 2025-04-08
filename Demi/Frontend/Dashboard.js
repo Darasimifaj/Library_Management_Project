@@ -9,6 +9,12 @@ function logoutAPI() {
   sessionStorage.removeItem("isLoggedIn");
   window.location.href = "StudentLogin.html";
 }
+function logoutAPIs() {
+  sessionStorage.removeItem("userId");
+  sessionStorage.removeItem("isLoggedIn");
+  alert("Logging Out");
+  window.location.href = "StudentLogin.html";
+}
 
 async function logout() {
   const userId = sessionStorage.getItem("userId");
@@ -68,10 +74,11 @@ async function autoLogout() {
     const data = await response.json();
     console.log(data);
     if (!response.ok) {
-      logout();
+      logoutAPIs();
       alert("Session expired. Logged out automatically.");
     }
   } catch (error) {
+    logoutAPIs();
     console.error("Auto-logout error:", error.message);
   }
 }

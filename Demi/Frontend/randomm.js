@@ -79,6 +79,25 @@ document.addEventListener("DOMContentLoaded", async function () {
         `;
 
         booksContainer.appendChild(bookElement);
+        document.querySelectorAll(".borrow").forEach((button) => {
+          button.addEventListener("click", (event) => {
+            const bookElement = event.target.closest(".book");
+            const serialNumber = bookElement.getAttribute("data-serial");
+            localStorage.setItem("savedLocation", window.location.href);
+            localStorage.setItem("selectedSerial", serialNumber);
+            window.location.href = "RequestBorrow.html";
+          });
+        });
+
+        document.querySelectorAll(".details").forEach((button) => {
+          button.addEventListener("click", (event) => {
+            const bookElement = event.target.closest(".book");
+            const serialNumber = bookElement.getAttribute("data-serial");
+
+            localStorage.setItem("selectedSerial", serialNumber);
+            window.location.href = "BookDetails.html";
+          });
+        });
       }
 
       updatePagination(totalPages); // Update pagination controls

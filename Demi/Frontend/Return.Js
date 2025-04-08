@@ -1,5 +1,14 @@
 // const search = document.getElementById("search").value.trim();
 // console.log(serialNumber);
+const scannedSerialNumber = localStorage.getItem("scannedSerialNumber");
+
+if (scannedSerialNumber) {
+  // Set the value of the serial number input field
+  document.getElementById("serialnumber").value = scannedSerialNumber;
+} else {
+  // If no serial number is found, alert the user or handle it accordingly
+  document.getElementById("serialnumber").value = "No serial number found!";
+}
 const ErrorMessage = document.getElementById("error_message");
 function geterror() {
   ErrorMessage.style.display = "block";
