@@ -33,7 +33,7 @@ function applyDarkMode() {
   }
 }
 
-g
+
 applyDarkMode();
 
 
