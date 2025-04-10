@@ -1,3 +1,19 @@
+function authorizedFetch(url, options = {}) {
+  const token = sessionStorage.getItem("token"); // Your JWT token
+  const apiKey = "your-api-key"; // Replace with your actual API key
+
+  const headers = {
+    ...options.headers,
+    "Content-Type": "application/json",
+    "x-api-key": apiKey,
+    Authorization: `Bearer ${token}`,
+  };
+
+  return fetch(url, {
+    ...options,
+    headers,
+  });
+}
 // const search = document.getElementById("search").value.trim();
 // console.log(serialNumber);
 const scannedSerialNumber = localStorage.getItem("scannedSerialNumber");
@@ -28,12 +44,12 @@ Enter.addEventListener("click", async () => {
     )}&serialnumber=${serialNumber}&IsReturned=false`;
 
     // Check if the book has been borrowed
-    const borrowResponse = await fetch(borrowHistoryUrl);
+    const borrowResponse = await authorizedFetch(borrowHistoryUrl);
     const borrowData = await borrowResponse.json();
     const isBorrowed = borrowData.totalNotReturned > 0;
     console.log(isBorrowed);
     const bookurl = `https://localhost:44354/api/Books/${serialNumber}`;
-    const response = await fetch(bookurl);
+    const response = await authorizedFetch(bookurl);
     const bookresponse = await response.json();
 
     if (!serialNumber) {

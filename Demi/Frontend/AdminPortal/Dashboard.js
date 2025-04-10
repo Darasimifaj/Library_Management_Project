@@ -1,3 +1,20 @@
+function authorizedFetch(url, options = {}) {
+  const token = sessionStorage.getItem("token"); // Your JWT token
+  const apiKey = "your-api-key"; // Replace with your actual API key
+
+  const headers = {
+    ...options.headers,
+    "Content-Type": "application/json",
+    "x-api-key": apiKey,
+    Authorization: `Bearer ${token}`,
+  };
+
+  return fetch(url, {
+    ...options,
+    headers,
+  });
+}
+
 const API_BASE_URL = "https://localhost:44354/api/userlogin";
 
 // Redirect to login if not logged in
@@ -45,7 +62,7 @@ async function logout() {
   if (!userId) return alert("No active session found");
 
   try {
-    const response = await fetch(
+    const response = await authorizedFetch(
       `${API_BASE_URL}/logout?userId=${encodeURIComponent(userId)}`,
       {
         method: "POST",
@@ -75,7 +92,7 @@ async function checkSession() {
   if (!userId) return alert("No active session");
 
   try {
-    const response = await fetch(
+    const response = await authorizedFetch(
       `${API_BASE_URL}/check-session?userId=${userId}`
     );
     const data = await response.json();
@@ -89,35 +106,35 @@ async function checkSession() {
 }
 
 // Function to handle auto-logout when session expires
-async function autoLogout() {
-  const userId = sessionStorage.getItem("userId");
-  if (!userId) return;
+// async function autoLogout() {
+//   const userId = sessionStorage.getItem("userId");
+//   if (!userId) return;
 
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/auto-logout?userId=${encodeURIComponent(userId)}`,
-      {
-        method: "POST",
-      }
-    );
+//   try {
+//     const response = await authorizedFetch(
+//       `${API_BASE_URL}/auto-logout?userId=${encodeURIComponent(userId)}`,
+//       {
+//         method: "POST",
+//       }
+//     );
 
-    const data = await response.json();
-    console.log(data);
-    if (!response.ok) {
-      logoutAPIs();
-      alert("Session expired. Logged out automatically.");
-    }
-  } catch (error) {
-    logoutAPIs();
-    console.error("Auto-logout error:", error.message);
-  }
-}
+//     const data = await response.json();
+//     console.log(data);
+//     if (!response.ok) {
+//       logoutAPIs();
+//       alert("Session expired. Logged out automatically.");
+//     }
+//   } catch (error) {
+//     logoutAPIs();
+//     console.error("Auto-logout error:", error.message);
+//   }
+// }
 
-// Run autoLogout immediately when the script loads
-autoLogout();
+// // Run autoLogout immediately when the script loads
+// autoLogout();
 
-// Periodic check for session expiration
-setInterval(autoLogout, 60000); // Check every 1 minute
+// // Periodic check for session expiration
+// setInterval(autoLogout, 60000); // Check every 1 minute
 
 function closeSidebar() {
   const sidebar = document.getElementById("SideH");
@@ -183,7 +200,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   try {
     // Fetch student details
-    const studentResponse = await fetch(
+    const studentResponse = await authorizedFetch(
       `https://localhost:44354/api/user/${encodeURIComponent(userId)}`
     );
     if (!studentResponse.ok) throw new Error("Student not found");

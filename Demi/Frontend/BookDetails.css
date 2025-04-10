@@ -218,7 +218,8 @@ img:hover {
 .borrow {
   background-color: #611991;
 }
-.borrowed {
+.borrowed,
+.read {
   background-color: #611991b2;
 }
 .unavailable {

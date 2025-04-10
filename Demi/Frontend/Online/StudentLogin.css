@@ -1,0 +1,260 @@
+@import url("https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Orelega+One&display=swap");
+
+:root {
+  --inria: "Inria Sans", sans-serif;
+  --inter: "Inter", sans-serif;
+  --oreg: "Orelega One", serif;
+}
+body {
+  background-color: #f7f7f7;
+  margin: 0;
+  font-family: var(--inter);
+}
+.Logo {
+  color: #611991;
+  width: 50%;
+  display: flex;
+  align-items: center;
+  gap: 3%;
+  justify-content: flex-start;
+  h3 {
+    font-family: var(--oreg);
+    font-weight: 550;
+    margin: 0;
+    font-size: 22px;
+    text-align: center;
+  }
+  div {
+    width: 50px;
+    display: flex;
+  }
+  img {
+    width: 100%;
+  }
+}
+.main-nav {
+  width: 50%;
+  display: flex;
+  justify-content: flex-end;
+}
+.main-nav ul {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8%;
+  font-size: 22px;
+  font-weight: normal;
+  list-style: none;
+  padding: 0px;
+  a {
+    text-decoration: none;
+  }
+}
+nav ul:hover {
+  cursor: pointer;
+}
+.Home a {
+  color: #003898;
+}
+.Admin a {
+  color: #000000e8;
+}
+.Login a {
+  color: #611991;
+}
+.login-btn:hover {
+  cursor: pointer;
+}
+.nav-container {
+  width: 90%;
+  display: flex;
+}
+nav {
+  width: 100%;
+  position: fixed;
+  top: 0px;
+  background-color: #f7f7f7;
+}
+nav section {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  border-bottom: 2px solid #a8a8a8;
+}
+main {
+  margin: 100px 0;
+}
+.RealDetails {
+  width: 50%;
+}
+.LoginHeader {
+  font-weight: normal;
+  width: 100%;
+  text-align: center;
+  a {
+    text-decoration: none;
+  }
+  h1 {
+    font-weight: 500;
+  }
+}
+.Details-Cont {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+.Toggle {
+  display: flex;
+  justify-content: flex-end;
+
+  a {
+    text-decoration: none;
+  }
+  span {
+    margin: 0 3px;
+  }
+}
+.DetTemp {
+  border: 1px solid #dadcdd;
+  margin-top: 0px;
+  margin-top: 20px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  transition: box-shadow 0.3s ease-in-out;
+  p {
+    margin-top: 0px;
+    color: #14212e;
+    margin-bottom: 10px;
+  }
+  input {
+    width: -webkit-fill-available;
+    /* color: #A8A8A8; */
+    padding: 10px;
+    border: 1px solid #dadcdd;
+    border-radius: 5px;
+  }
+  input:focus {
+    outline: none;
+
+    box-shadow: 0px 0px 5px rgba(26, 25, 26, 0.5); /* Optional glow effect */
+  }
+}
+.DetTemp:focus-within {
+  box-shadow: 0px 0px 5px rgba(26, 25, 26, 0.5); /* Optional glow effect */
+}
+.login-btn {
+  font-size: 18px;
+  font-weight: 400;
+  width: 100%;
+  padding: 18px;
+  border: none;
+  border-radius: 13px;
+  color: white;
+  background-color: #611991;
+}
+.toggle-password:hover {
+  cursor: pointer;
+}
+/* Nav Responsive Start */
+.nav-container2 {
+  padding: 0 30%;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  height: auto;
+
+  li {
+    padding: 20px 0;
+    color: #611991;
+    font-weight: 500;
+    font-size: larger;
+  }
+  a {
+    text-decoration: none;
+  }
+  ul {
+    padding: 0px;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+  }
+}
+.nav-container2 li {
+  position: relative;
+  display: inline-block;
+}
+
+.nav-container2 li::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  height: 3px;
+
+  transition: width ease-in-out 0.5s;
+}
+.Home::after {
+  background-color: #003898;
+}
+.Admin::after {
+  background-color: #14212e;
+}
+.Login::after {
+  background-color: #611991;
+}
+
+.nav-container2 li:hover::after {
+  width: 100%; /* Expands smoothly */
+}
+.nav-container {
+  button {
+    background-color: transparent;
+    border: none;
+    width: 50px;
+    margin: 0px;
+    padding: 0;
+    /* img {
+      width: 100%;
+    } */
+  }
+  ul {
+    display: flex;
+    flex-direction: row;
+  }
+}
+#SideH {
+  align-items: center;
+  text-align: end;
+  flex-direction: column;
+  display: none;
+  h1:hover {
+    cursor: pointer;
+  }
+}
+.Side {
+  display: none;
+}
+#SideH {
+  span {
+    width: 90%;
+    border-bottom: 1px solid #14212e1c;
+  }
+}
+@media (max-width: 700px) {
+  .main-nav ul {
+    display: none;
+  }
+  .Side {
+    display: block;
+  }
+  .RealDetails {
+    width: 80%;
+  }
+}
+/* END */
+.Logo h3 {
+  margin: 20px 0;
+}

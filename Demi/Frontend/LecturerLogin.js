@@ -1,3 +1,20 @@
+function authorizedFetch(url, options = {}) {
+  const token = sessionStorage.getItem("token"); // Your JWT token
+  const apiKey = "your-api-key"; // Replace with your actual API key
+
+  const headers = {
+    ...options.headers,
+    "Content-Type": "application/json",
+    "x-api-key": apiKey,
+    Authorization: `Bearer ${token}`,
+  };
+
+  return fetch(url, {
+    ...options,
+    headers,
+  });
+}
+
 if (sessionStorage.getItem("isLoggedIn")) {
   window.location.href = "Dashboard.html";
 }
@@ -74,7 +91,7 @@ async function login() {
   const errorMessage = document.getElementById("error-message");
   const API_BASE_URL = "https://localhost:44354/api/userlogin";
   try {
-    const response = await fetch(
+    const response = await authorizedFetch(
       `${API_BASE_URL}/lecturer?UserId=${encodeURIComponent(
         userId
       )}&password=${password}`,
@@ -91,6 +108,9 @@ async function login() {
     sessionStorage.setItem("sessionExpiry", data.sessionExpiry);
     sessionStorage.setItem("userId", userId);
     sessionStorage.setItem("isLoggedIn", "true");
+    const token = data.token;
+    sessionStorage.setItem("token", token);
+    sessionStorage.setItem("userType", "Lecturer");
     alert(`Lecturer login successful!`);
     window.location.href = "Dashboard.html";
   } catch (error) {

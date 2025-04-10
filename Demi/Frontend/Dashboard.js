@@ -1,3 +1,20 @@
+function authorizedFetch(url, options = {}) {
+  const token = sessionStorage.getItem("token"); // Your JWT token
+  const apiKey = "your-api-key"; // Replace with your actual API key
+
+  const headers = {
+    ...options.headers,
+    "Content-Type": "application/json",
+    "x-api-key": apiKey,
+    Authorization: `Bearer ${token}`,
+  };
+
+  return fetch(url, {
+    ...options,
+    headers,
+  });
+}
+
 // If not logged in, redirect to login page
 const API_BASE_URL = "https://localhost:44354/api/userlogin";
 if (!sessionStorage.getItem("isLoggedIn")) {
@@ -21,7 +38,7 @@ async function logout() {
   if (!userId) return alert("No active session found");
 
   try {
-    const response = await fetch(
+    const response = await authorizedFetch(
       `${API_BASE_URL}/logout?userId=${encodeURIComponent(userId)}`,
       {
         method: "POST",
@@ -45,7 +62,7 @@ async function checkSession() {
   if (!userId) return alert("No active session");
 
   try {
-    const response = await fetch(
+    const response = await authorizedFetch(
       `${API_BASE_URL}/check-session?userId=${userId}`
     );
     const data = await response.json();
@@ -64,7 +81,7 @@ async function autoLogout() {
   if (!userId) return;
 
   try {
-    const response = await fetch(
+    const response = await authorizedFetch(
       `${API_BASE_URL}/auto-logout?userId=${userId}`,
       {
         method: "POST",
@@ -120,7 +137,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   try {
     // Fetch User details
-    const UserResponse = await fetch(
+    const UserResponse = await authorizedFetch(
       `https://localhost:44354/api/user/${encodeURIComponent(userId)}`
     );
     if (!UserResponse.ok) throw new Error("User not found");

@@ -1,3 +1,20 @@
+function authorizedFetch(url, options = {}) {
+  const token = sessionStorage.getItem("token"); // Your JWT token
+  const apiKey = "your-api-key"; // Replace with your actual API key
+
+  const headers = {
+    ...options.headers,
+    "Content-Type": "application/json",
+    "x-api-key": apiKey,
+    Authorization: `Bearer ${token}`,
+  };
+
+  return fetch(url, {
+    ...options,
+    headers,
+  });
+}
+
 function closeSidebar() {
   const sidebar = document.getElementById("SideH");
   if (sidebar) {
@@ -55,7 +72,7 @@ const borrowHistoryUrl = `https://localhost:44354/api/Books/borrow-history?UserI
 )}&serialnumber=${serialNumber}&IsReturned=false`;
 
 document.addEventListener("DOMContentLoaded", async function () {
-  const borrowResponse = await fetch(borrowHistoryUrl);
+  const borrowResponse = await authorizedFetch(borrowHistoryUrl);
   const borrowData = await borrowResponse.json();
   const isBorrowed = borrowData.totalNotReturned > 0;
   if (serialNumber) {
@@ -66,12 +83,15 @@ document.addEventListener("DOMContentLoaded", async function () {
     console.log("No serial number found.");
   }
   try {
-    const response = await fetch(bookurl);
+    const response = await authorizedFetch(bookurl);
     const book = await response.json();
     const imageUrl = `https://localhost:44354/api/Books/image/${serialNumber}`;
+    const imgresponse = await authorizedFetch(imageUrl);
+    const blob = await imgresponse.blob();
+    const objectURL = URL.createObjectURL(blob);
     console.log(book);
     document.getElementById("BName").innerText = truncateText(book.name, 7);
-    document.getElementById("Image").src = imageUrl;
+    document.getElementById("Image").src = objectURL;
     document.getElementById("Author").innerText = truncateText(book.name, 7);
     document.getElementById("Description").innerHTML = book.description;
     document.getElementById("Year").innerHTML = "Published: " + book.year;
@@ -83,7 +103,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       Bbutton.innerHTML = "Unavailable";
     } else if (isBorrowed) {
       Bbutton.className = "borrowed";
-      Bbutton.innerHTML = "Borrowed";
+      Bbutton.innerHTML = "Return";
     } else if (!isBorrowed && book.quantity >= 1) {
       Bbutton.className = "borrow";
       Bbutton.innerHTML = "Borrow";
@@ -94,6 +114,13 @@ document.addEventListener("DOMContentLoaded", async function () {
         console.log("Clicked!"); // Save serial number
         localStorage.setItem("savedLocation", window.location.href);
         window.location.href = "RequestBorrow.html"; // Redirect to next page
+      });
+    });
+    document.querySelectorAll(".borrowed").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        console.log("Clicked!"); // Save serial number
+        localStorage.setItem("savedLocation", window.location.href);
+        window.location.href = "RequestReturn.html"; // Redirect to next page
       });
     });
   } catch (error) {

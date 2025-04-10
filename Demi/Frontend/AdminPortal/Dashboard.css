@@ -1,8 +1,83 @@
+/* Nav */
+/* NAV Start */
+nav {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  align-items: center;
+}
+nav input {
+  font-size: medium;
+  font-weight: 500;
+  color: #8147a7;
+  width: 100%;
+  padding: 5px;
+  padding-left: 30px;
+  border: none;
+  background-color: #fcf6f6;
+  border-radius: 25px;
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 0px;
+}
+nav input:focus-within {
+  outline: none;
+}
+
+.Search button {
+  border: none;
+  width: 100px;
+  border-radius: 25px;
+  border-top-left-radius: 0px;
+  border-bottom-left-radius: 0px;
+  background-color: #fcf6f6;
+}
+.Search button:hover {
+  cursor: pointer;
+}
+.Search {
+  height: 50px;
+  width: 50%;
+  display: flex;
+  justify-content: center;
+}
+.popup {
+  display: none;
+  position: absolute;
+  top: 110px; /* Adjust based on profile pic size */
+  right: 10px;
+  background-color: #f0e8f4;
+  border-radius: 20px;
+  padding: 40px;
+  min-width: 280px;
+
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  img {
+    width: 40%;
+  }
+  button {
+    width: 80%;
+    font-weight: 600;
+    color: #a075bd;
+    padding: 15px;
+    background-color: #f0e8f4;
+    border: 2px solid #a075bd;
+    border-radius: 50px;
+  }
+  button:hover {
+    cursor: pointer;
+  }
+}
+.profile-container:hover {
+  cursor: pointer;
+}
+/* Nav */
 main {
+  width: 100%;
   display: flex;
 }
 .SideBar {
-  padding: 20px;
+  padding: 10px;
 }
 ul {
   display: flex;
@@ -11,6 +86,9 @@ ul {
   list-style: none;
   padding: 0;
   li {
+    display: flex;
+    gap: 10px;
+    align-items: center;
     padding: 10px;
     border: 1px solid grey;
     border-radius: 10px;
@@ -23,5 +101,245 @@ ul {
 }
 
 .MainBar {
-  width: 80%;
+  width: 100%;
+}
+.text-wrapper-2,
+.books,
+.text-wrapper {
+  display: none;
+}
+/* .stats div {
+  background-color: #d6b1f0;
+  padding: 2px 20px;
+  border-radius: 10px;
+  text-align: center;
+  color: #8147a7;
+}
+.stats h3{
+  font-size: 10px;
+}
+.stats h1 {
+  font-size: 20px;
+}
+.stats {
+  display: flex;
+  justify-content: space-between;
+} */
+.dashboard-number {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 32px;
+  padding: 14px 0px;
+  position: relative;
+  background-color: #fafcfd;
+}
+
+.dashboard-number .container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+  position: relative;
+  align-self: stretch;
+  width: 100%;
+  flex: 0 0 auto;
+}
+
+.dashboard-number .card-container {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  position: relative;
+  align-self: stretch;
+  width: 100%;
+  flex: 0 0 auto;
+}
+
+.dashboard-number .number-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 32px;
+  position: relative;
+  flex: 1;
+  flex-grow: 1;
+  background-color: #245a7e17;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1.5px solid;
+  border-color: transparent;
+}
+
+.dashboard-number .frame {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  align-self: stretch;
+  width: 100%;
+  flex: 0 0 auto;
+}
+
+.dashboard-number .text-wrapper {
+  position: relative;
+  flex: 1;
+  margin-top: -1px;
+  font-family: "Plus Jakarta Sans-Bold", Helvetica;
+  font-weight: 700;
+  color: #1a2227;
+  font-size: 17px;
+  letter-spacing: 0;
+  line-height: 24px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+
+.dashboard-number .dots-horizontal {
+  position: relative;
+  width: 24px;
+  height: 24px;
+}
+
+.dashboard-number .number-detail {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  position: relative;
+  align-self: stretch;
+  width: 100%;
+  flex: 0 0 auto;
+}
+
+.dashboard-number .div {
+  position: relative;
+  align-self: stretch;
+  margin-top: -1px;
+  font-family: "Plus Jakarta Sans-Bold", Helvetica;
+  font-weight: 700;
+  color: #1a2227;
+  font-size: 34px;
+  letter-spacing: -0.68px;
+  line-height: 40px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+
+.dashboard-number .text-wrapper-2 {
+  position: relative;
+  align-self: stretch;
+  font-family: "Plus Jakarta Sans-Medium", Helvetica;
+  font-weight: 500;
+  color: #2873a5;
+  font-size: 13px;
+  letter-spacing: 0;
+  line-height: 16px;
+}
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  /* width: 320px; */
+  align-items: flex-start;
+  position: relative;
+}
+
+.sidebar .side-panel-menu {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 32px 0px;
+  position: relative;
+  align-self: stretch;
+  width: 100%;
+  flex: 0 0 auto;
+  background-color: #fafcfd;
+}
+
+.sidebar .menu-item {
+  background-color: #22608b29;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 20px;
+  position: relative;
+  align-self: stretch;
+  width: 100%;
+  flex: 0 0 auto;
+  border-radius: 16px;
+}
+
+.sidebar .img {
+  position: relative;
+  width: 24px;
+  height: 24px;
+}
+
+.sidebar .books {
+  color: #256b9b;
+  position: relative;
+  width: fit-content;
+  font-family: "Plus Jakarta Sans-Medium", Helvetica;
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: 0;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.sidebar .div {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 20px;
+  position: relative;
+  align-self: stretch;
+  width: 100%;
+  flex: 0 0 auto;
+  border-radius: 16px;
+}
+
+.sidebar .text-wrapper {
+  color: #292d32;
+  position: relative;
+  width: fit-content;
+  font-family: "Plus Jakarta Sans-Medium", Helvetica;
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: 0;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.sidebar .menu-item-2 {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 20px;
+  position: relative;
+  align-self: stretch;
+  width: 100%;
+  flex: 0 0 auto;
+  background-color: #fafcfd;
+  border-radius: 16px;
+}
+
+.sidebar .text-wrapper-2 {
+  position: relative;
+  width: fit-content;
+  font-family: "Plus Jakarta Sans-Medium", Helvetica;
+  font-weight: 500;
+  color: #1a2227;
+  font-size: 15px;
+  letter-spacing: 0;
+  line-height: 20px;
+  white-space: nowrap;
 }

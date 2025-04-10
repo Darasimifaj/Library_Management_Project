@@ -62,6 +62,7 @@ function togglePassword() {
 // }
 const userId = document.getElementById("matric").value;
 const password = document.getElementById("password").value;
+const passwordinput = document.getElementById("password");
 const errorMessage = document.getElementById("error-message");
 const API_BASE_URL = "https://localhost:44354/api/userlogin";
 
@@ -86,10 +87,14 @@ async function login() {
       }
     );
     const data = await response.json();
+
     if (!response.ok) throw new Error(data.message || "Login failed");
 
     sessionStorage.setItem("sessionExpiry", data.sessionExpiry);
     sessionStorage.setItem("userId", userId);
+    sessionStorage.setItem("userType", "Student");
+    const token = data.token;
+    sessionStorage.setItem("token", token);
     console.log(response.json);
     sessionStorage.setItem("isLoggedIn", "true");
     alert(`Student login successful!`);
@@ -120,7 +125,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const closeButton = document.getElementById("close");
   const openButton = document.getElementById("open");
 
-  password.addEventListener("keypress", function (event) {
+  passwordinput.addEventListener("keypress", function (event) {
     if (event.key === "Enter") {
       event.preventDefault();
       login();
