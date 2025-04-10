@@ -8,6 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Security.Cryptography;
+using Library.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Library.Controllers
 {
@@ -16,16 +18,21 @@ namespace Library.Controllers
     public class UserLoginController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly ILogger<UserLoginController> _logger;
+        private readonly JwtService _jwtService;
 
-        public UserLoginController(AppDbContext context)
+        public UserLoginController(AppDbContext context, JwtService jwtService, ILogger<UserLoginController> logger)
         {
+            _logger = logger;
             _context = context;
+            _jwtService = jwtService;
         }
 
         // ✅ Student Login
         [HttpPost("student")]
         public async Task<IActionResult> StudentLogin([FromQuery] LoginUserDto dto)
         {
+            _logger.LogInformation("Attempting student login for UserId: {UserId}", dto.UserId);
             return await AuthenticateUser(dto, "Student", true);
         }
 
@@ -33,6 +40,7 @@ namespace Library.Controllers
         [HttpPost("lecturer")]
         public async Task<IActionResult> LecturerLogin([FromQuery] LoginUserDto dto)
         {
+            _logger.LogInformation("Attempting lecturer login for UserId: {UserId}", dto.UserId);
             return await AuthenticateUser(dto, "Lecturer", true);
         }
 
@@ -40,7 +48,8 @@ namespace Library.Controllers
         [HttpPost("admin")]
         public async Task<IActionResult> AdminLogin([FromQuery] LoginUserDto dto)
         {
-            return await AuthenticateUser(dto, "Admin",true);
+            _logger.LogInformation("Attempting admin login for UserId: {UserId}", dto.UserId);
+            return await AuthenticateUser(dto, "Admin", true);
         }
 
         // 🔹 Helper method to authenticate users
@@ -48,6 +57,7 @@ namespace Library.Controllers
         {
             if (dto == null || string.IsNullOrWhiteSpace(dto.UserId) || string.IsNullOrWhiteSpace(dto.Password))
             {
+                _logger.LogWarning("Login attempt failed for {UserType} with UserId: {UserId}. Reason: Missing UserId or Password.", userType, dto.UserId);
                 return BadRequest("UserId and Password are required.");
             }
 
@@ -56,23 +66,26 @@ namespace Library.Controllers
 
             if (user == null)
             {
+                _logger.LogWarning("Invalid {UserType} credentials for UserId: {UserId}.", userType, dto.UserId);
                 return Unauthorized($"Invalid {userType} credentials.");
             }
 
             // ❌ Check if the user is deactivated
             if (!user.IsActive)
             {
-                return Unauthorized(new { message = "Account is deactivated. Please contact the admin." }); 
+                _logger.LogWarning("Account for UserId: {UserId} is deactivated.", dto.UserId);
+                return Unauthorized(new { message = "Account is deactivated. Please contact the admin." });
             }
 
             // Verify password
             if (HashPassword(dto.Password) != user.PasswordHash)
             {
+                _logger.LogWarning("Invalid password for UserId: {UserId}.", dto.UserId);
                 return Unauthorized(new { message = $"Invalid {userType} credentials." });
             }
 
             // Session handling
-            var sessionDuration = TimeSpan.FromHours(0.5);
+            var sessionDuration = TimeSpan.FromHours(1);
             var expiryTime = DateTime.UtcNow.Add(sessionDuration);
 
             var loginHistory = new UserLoginHistory
@@ -87,12 +100,18 @@ namespace Library.Controllers
             _context.UserLoginHistories.Add(loginHistory);
             await _context.SaveChangesAsync();
 
+            var token = _jwtService.GenerateToken(user);
+
+            _logger.LogInformation("{UserType} login successful for UserId: {UserId} at {LoginTime}. Session will expire at {ExpiryTime}.", userType, dto.UserId, DateTime.UtcNow, expiryTime);
+
             return Ok(new
             {
                 message = $"{userType} login successful",
-                sessionExpiry = expiryTime
+                sessionExpiry = expiryTime,
+                token = token
             });
         }
+
         private string HashPassword(string password)
         {
             using (var sha256 = SHA256.Create())
@@ -106,49 +125,13 @@ namespace Library.Controllers
                 return builder.ToString();
             }
         }
+
         [HttpPost("logout")]
+        [Authorize]
         public async Task<IActionResult> Logout([FromQuery] string userId)
         {
-            var user = _context.Users.FirstOrDefault(u => u.UserId == userId&& u.IsLoggedIn==true);
-            var lastLogin = _context.UserLoginHistories
-                .Where(l => l.UserId == userId)
-                .OrderByDescending(l => l.LoginTime)
-                .FirstOrDefault();
+            _logger.LogInformation("Attempting logout for UserId: {UserId}", userId);
 
-            if (lastLogin == null || lastLogin.LogoutTime != null)
-            {
-                return NotFound("No active login found.");
-            }
-
-            user.IsLoggedIn = false;
-            lastLogin.LogoutTime = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-
-            return Ok(new { message = "Logout successful" });
-        }
-        [HttpGet("check-session")]
-        public IActionResult CheckSession([FromQuery] string userId)
-        {
-            var lastLogin = _context.UserLoginHistories
-                .Where(l => l.UserId == userId)
-                .OrderByDescending(l => l.LoginTime)
-                .FirstOrDefault();
-
-            if (lastLogin == null)
-            {
-                return NotFound("No login record found.");
-            }
-
-            if (lastLogin.LogoutTime != null || DateTime.UtcNow > lastLogin.SessionExpiry)
-            {
-                return Unauthorized("Session expired. Please log in again.");
-            }
-
-            return Ok(new { message = "Session is still active", sessionExpiry = lastLogin.SessionExpiry });
-        }
-        [HttpPost("auto-logout")]
-        public async Task<IActionResult> AutoLogout([FromQuery] string userId)
-        {
             var user = _context.Users.FirstOrDefault(u => u.UserId == userId && u.IsLoggedIn == true);
             var lastLogin = _context.UserLoginHistories
                 .Where(l => l.UserId == userId)
@@ -157,6 +140,62 @@ namespace Library.Controllers
 
             if (lastLogin == null || lastLogin.LogoutTime != null)
             {
+                _logger.LogWarning("No active session found for UserId: {UserId}.", userId);
+                return NotFound("No active login found.");
+            }
+
+            user.IsLoggedIn = false;
+            lastLogin.LogoutTime = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("UserId: {UserId} has successfully logged out at {LogoutTime}.", userId, DateTime.UtcNow);
+
+            return Ok(new { message = "Logout successful" });
+        }
+
+        [HttpGet("check-session")]
+        [Authorize]
+        public IActionResult CheckSession([FromQuery] string userId)
+        {
+            _logger.LogInformation("Checking session for UserId: {UserId}.", userId);
+
+            var lastLogin = _context.UserLoginHistories
+                .Where(l => l.UserId == userId)
+                .OrderByDescending(l => l.LoginTime)
+                .FirstOrDefault();
+
+            if (lastLogin == null)
+            {
+                _logger.LogWarning("No login record found for UserId: {UserId}.", userId);
+                return NotFound("No login record found.");
+            }
+
+            if (lastLogin.LogoutTime != null || DateTime.UtcNow > lastLogin.SessionExpiry)
+            {
+                _logger.LogWarning("Session expired for UserId: {UserId}.", userId);
+                return Unauthorized("Session expired. Please log in again.");
+            }
+
+            _logger.LogInformation("Session is still active for UserId: {UserId}, expires at {ExpiryTime}.", userId, lastLogin.SessionExpiry);
+
+            return Ok(new { message = "Session is still active", sessionExpiry = lastLogin.SessionExpiry });
+        }
+
+        [HttpPost("auto-logout")]
+        [Authorize]
+        public async Task<IActionResult> AutoLogout([FromQuery] string userId)
+        {
+            _logger.LogInformation("Attempting auto-logout for UserId: {UserId}", userId);
+
+            var user = _context.Users.FirstOrDefault(u => u.UserId == userId && u.IsLoggedIn == true);
+            var lastLogin = _context.UserLoginHistories
+                .Where(l => l.UserId == userId)
+                .OrderByDescending(l => l.LoginTime)
+                .FirstOrDefault();
+
+            if (lastLogin == null || lastLogin.LogoutTime != null)
+            {
+                _logger.LogWarning("No active session found for UserId: {UserId}.", userId);
                 return NotFound("No active session found.");
             }
 
@@ -165,16 +204,27 @@ namespace Library.Controllers
                 user.IsLoggedIn = false;
                 lastLogin.LogoutTime = lastLogin.SessionExpiry; // Auto-logout at expiry time
                 await _context.SaveChangesAsync();
+
+                _logger.LogInformation("UserId: {UserId} auto-logged out due to session expiry at {ExpiryTime}.", userId, lastLogin.SessionExpiry);
+
                 return Unauthorized("Session expired. You have been logged out.");
             }
 
+            _logger.LogInformation("Session is still active for UserId: {UserId}.", userId);
             return Ok(new { message = "Session is still active" });
         }
+
         [HttpGet("Login-History")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<UserLoginHistory>>> GetAllLogin()
         {
-            return await _context.UserLoginHistories.ToListAsync();
-        }
+            _logger.LogInformation("Fetching all user login history.");
 
+            var history = await _context.UserLoginHistories.ToListAsync();
+
+            _logger.LogInformation("Fetched {Count} login history records.", history.Count);
+
+            return history;
+        }
     }
 }

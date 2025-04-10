@@ -7,6 +7,7 @@ using ClosedXML.Excel;
 using Library.Data;
 using Library.Models;
 using Library.Models.Dtos;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -20,16 +21,18 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Library.Controllers
 {
+    //[Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class BooksController : ControllerBase
     {
         private readonly AppDbContext _context;
-
+        private readonly ILogger<BooksController> _logger;
         private readonly string _imageFolderPath;
         private readonly string _PDFFolderPath;
-        public BooksController(AppDbContext context)
+        public BooksController(AppDbContext context, ILogger<BooksController> logger)
         {
+            _logger = logger;
             _context = context;
             _imageFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
             _PDFFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Book");
@@ -42,26 +45,32 @@ namespace Library.Controllers
             {
                 Directory.CreateDirectory(_PDFFolderPath);
             }
+
+            _logger = logger;
         }
 
 
-        // GET: api/Books (Get all books)
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Book>>> GetAllBooks()
         {
-            return await _context.Books.ToListAsync();
+            var books = await _context.Books.ToListAsync();
+            _logger.LogInformation("Fetched all books from the database.");
+            return books;
         }
-       
-        //
+
+        // GET: api/Books/books
         [HttpGet("books")]
         public async Task<IActionResult> GetBooks(
-    [FromQuery] string? search = null,
-    [FromQuery] string? sort = "Id",
-    [FromQuery] string? order = "asc",
-    [FromQuery] string? filter = null,
-    [FromQuery] int pageNumber = 1,
-    [FromQuery] int pageSize = 10)
+            [FromQuery] string? search = null,
+            [FromQuery] string? sort = "Id",
+            [FromQuery] string? order = "asc",
+            [FromQuery] string? filter = null,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
         {
+            _logger.LogInformation("Fetching books with search: {Search}, sort: {Sort}, order: {Order}, filter: {Filter}, page: {PageNumber}, pageSize: {PageSize}",
+                search, sort, order, filter, pageNumber, pageSize);
+
             if (pageNumber < 1) pageNumber = 1;
             if (pageSize < 1) pageSize = 10;
 
@@ -79,10 +88,10 @@ namespace Library.Controllers
                 switch (filter.ToLower())
                 {
                     case "available":
-                        books = books.Where(b => b.Quantity > 0||b.PDFPath == null);
+                        books = books.Where(b => b.Quantity > 0 || b.PDFPath.Length>1);
                         break;
                     case "unavailable":
-                        books = books.Where(b => b.Quantity == 0||b.PDFPath==null);
+                        books = books.Where(b => b.Quantity == 0 || b.PDFPath == null);
                         break;
                 }
             }
@@ -116,14 +125,16 @@ namespace Library.Controllers
                 Data = pagedBooks
             };
 
+            _logger.LogInformation("Fetched {TotalRecords} books, page {PageNumber} of {TotalPages}.", totalRecords, pageNumber, (int)Math.Ceiling(totalRecords / (double)pageSize));
             return Ok(response);
         }
 
-        //
         // GET: api/Books/{serialNumber} (Get a book by Serial Number)
         [HttpGet("{serialNumber}")]
         public async Task<IActionResult> GetBook(string serialNumber)
         {
+            _logger.LogInformation("Fetching book with serial number: {SerialNumber}", serialNumber);
+
             var book = await _context.Books
                 .Where(b => b.SerialNumber == serialNumber)
                 .Select(b => new
@@ -135,125 +146,104 @@ namespace Library.Controllers
                     b.Description,
                     b.Quantity,
                     b.PDFPath,
-                    Image = $"{Request.Scheme}://{Request.Host}/uploads/{b.ImagePath}".Replace("//", "/") // FIXED DOUBLE SLibraryH ISSUE
+                    Image = $"{Request.Scheme}://{Request.Host}/uploads/{b.ImagePath}".Replace("//", "/") // FIXED DOUBLE SLASH ISSUE
                 })
                 .FirstOrDefaultAsync();
 
             if (book == null)
             {
+                _logger.LogWarning("Book with serial number {SerialNumber} not found.", serialNumber);
                 return NotFound(new { message = "Book not found" });
             }
 
+            _logger.LogInformation("Fetched book details for serial number: {SerialNumber}", serialNumber);
             return Ok(book);
         }
-        
+
+        // PATCH: api/Books/upload-image
         [HttpPatch("upload-image")]
         public async Task<IActionResult> UploadBookImage([FromQuery] string serialNumber, IFormFile file)
         {
             if (string.IsNullOrEmpty(serialNumber))
             {
+                _logger.LogWarning("Serial Number is required for image upload.");
                 return BadRequest(new { message = "Serial Number is required." });
             }
 
             var book = await _context.Books.FirstOrDefaultAsync(b => b.SerialNumber == serialNumber);
             if (book == null)
             {
+                _logger.LogWarning("Book with serial number {SerialNumber} not found for image upload.", serialNumber);
                 return NotFound(new { message = "Book not found." });
             }
 
             if (file == null || file.Length == 0)
             {
+                _logger.LogWarning("No image uploaded for book with serial number {SerialNumber}.", serialNumber);
                 return BadRequest(new { message = "No image uploaded." });
             }
 
             try
             {
-                // Save the image and update the database
                 var filePath = await SaveAndResizeImage(file);
-                book.ImagePath = filePath ?? string.Empty; // Ensure it's not NULL
+                book.ImagePath = filePath ?? string.Empty;
 
                 await _context.SaveChangesAsync();
+                _logger.LogInformation("Image uploaded successfully for book with serial number {SerialNumber}.", serialNumber);
                 return Ok(new { message = "Image uploaded successfully.", imagePath = book.ImagePath });
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "An error occurred while uploading image for book with serial number {SerialNumber}.", serialNumber);
                 return StatusCode(500, new { message = "An error occurred while saving the image.", error = ex.Message });
             }
         }
-        [HttpPatch("upload-PDF")]
-        public async Task<IActionResult> UploadBookPDF([FromQuery] string serialNumber, IFormFile file)
-        {
-            if (string.IsNullOrEmpty(serialNumber))
-            {
-                return BadRequest(new { message = "Serial Number is required." });
-            }
 
-            var book = await _context.Books.FirstOrDefaultAsync(b => b.SerialNumber == serialNumber);
-            if (book == null)
-            {
-                return NotFound(new { message = "Book not found." });
-            }
-
-            if (file == null || file.Length == 0)
-            {
-                return BadRequest(new { message = "No PDF uploaded." });
-            }
-
-            try
-            {
-                // Save the image and update the database
-                var filePath = await SavePDF(file);
-                book.PDFPath = filePath ?? string.Empty; // Ensure it's not NULL
-
-                await _context.SaveChangesAsync();
-                return Ok(new { message = "PDF uploaded successfully.", PDFPath = book.PDFPath });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "An error occurred while saving the PDF.", error = ex.Message });
-            }
-        }
-
-
+        // POST: api/Books/request-borrow/{serialNumber}/{UserId}
         [HttpPost("request-borrow/{serialNumber}/{UserId}")]
         public async Task<IActionResult> RequestBorrowCode(string serialNumber, string UserId)
         {
             UserId = Uri.UnescapeDataString(UserId);
-         
+
             var student = await _context.Users.FirstOrDefaultAsync(s => s.UserId == UserId);
             if (student == null)
             {
+                _logger.LogWarning("Student with UserId {UserId} not found for borrow request.", UserId);
                 return NotFound(new { message = "Student not found." });
             }
 
             var book = await _context.Books.FirstOrDefaultAsync(b => b.SerialNumber == serialNumber);
             if (book == null)
             {
+                _logger.LogWarning("Book with serial number {SerialNumber} not found for borrow request.", serialNumber);
                 return NotFound(new { message = "Book not found." });
             }
 
             if (book.Quantity <= 0)
             {
+                _logger.LogWarning("Book with serial number {SerialNumber} is out of stock.", serialNumber);
                 return BadRequest(new { message = "Book is out of stock." });
             }
-            int borrowLimit = student.GetBorrowLimit(); // Limit based on rating
+
+            int borrowLimit = student.GetBorrowLimit();
             int currentlyBorrowed = await _context.BorrowRecords
                 .CountAsync(b => b.UserId == UserId && !b.IsReturned);
 
             if (currentlyBorrowed >= borrowLimit)
             {
+                _logger.LogWarning("User {UserId} has reached their borrow limit. Current borrow limit: {BorrowLimit}.", UserId, borrowLimit);
                 return BadRequest(new { message = $"Borrow limit reached. You can only borrow {borrowLimit} books at a time." });
             }
-            //Check if the user already borrowed this book
+
             var existingBorrow = await _context.BorrowRecords
                    .FirstOrDefaultAsync(b => b.UserId == UserId && b.SerialNumber == serialNumber && !b.IsReturned);
 
             if (existingBorrow != null)
             {
+                _logger.LogWarning("User {UserId} has already borrowed the book with serial number {SerialNumber}.", UserId, serialNumber);
                 return BadRequest(new { message = "You have already borrowed this book." });
             }
 
-            // Generate a random 6-character alphanumeric code
             var borrowCode = Guid.NewGuid().ToString("N").Substring(0, 6).ToUpper();
 
             var pendingBorrow = new PendingBorrow
@@ -263,12 +253,12 @@ namespace Library.Controllers
                 BorrowCode = borrowCode,
                 RequestTime = DateTime.UtcNow,
                 IsApproved = false
-                
             };
 
             _context.PendingBorrows.Add(pendingBorrow);
             await _context.SaveChangesAsync();
 
+            _logger.LogInformation("Borrow request submitted for UserId {UserId} and book {SerialNumber}. Awaiting admin approval.", UserId, serialNumber);
             return Ok(new { message = "Borrow request submitted. Await admin approval.", borrowCode });
         }
 
@@ -278,7 +268,9 @@ namespace Library.Controllers
             var currentTime = DateTime.UtcNow;
             var expiryDuration = TimeSpan.FromHours(0.1);
 
-            // Get pending borrows including expired ones
+            // Log fetching pending borrows
+            _logger.LogInformation("Fetching pending borrow requests at {Time}", currentTime);
+
             var pendingBorrows = await _context.PendingBorrows
                 .Where(pb => !pb.IsApproved)
                 .Select(pb => new
@@ -288,18 +280,17 @@ namespace Library.Controllers
                     pb.SerialNumber,
                     pb.BorrowCode,
                     pb.RequestTime,
-                    ExpiryTime = pb.RequestTime.Add(expiryDuration) // Show expiration time
+                    ExpiryTime = pb.RequestTime.Add(expiryDuration)
                 })
                 .ToListAsync();
 
-            // Find expired requests
             var expiredRequests = pendingBorrows
                 .Where(pb => pb.ExpiryTime <= currentTime)
                 .ToList();
 
-            // Remove expired requests from the database
             if (expiredRequests.Any())
             {
+                _logger.LogInformation("{ExpiredCount} borrow requests have expired.", expiredRequests.Count);
                 var expiredIds = expiredRequests.Select(pb => pb.Id).ToList();
                 var expiredEntities = await _context.PendingBorrows
                     .Where(pb => expiredIds.Contains(pb.Id))
@@ -307,58 +298,71 @@ namespace Library.Controllers
 
                 _context.PendingBorrows.RemoveRange(expiredEntities);
                 await _context.SaveChangesAsync();
+                _logger.LogInformation("{ExpiredCount} expired borrow requests removed from database.", expiredRequests.Count);
             }
 
             return Ok(pendingBorrows);
         }
 
-
         [HttpPost("approve-borrow/{borrowCode}")]
         public async Task<IActionResult> ApproveBorrowRequest(string borrowCode)
         {
+            _logger.LogInformation("Attempting to approve borrow request with BorrowCode: {BorrowCode}.", borrowCode);
+
             var pendingBorrow = await _context.PendingBorrows
                 .FirstOrDefaultAsync(pb => pb.BorrowCode == borrowCode && !pb.IsApproved);
 
             if (pendingBorrow == null)
             {
+                _logger.LogWarning("Borrow request with code {BorrowCode} not found or already approved.", borrowCode);
                 return NotFound(new { message = "Borrow request not found or already approved." });
             }
 
             pendingBorrow.IsApproved = true;
             await _context.SaveChangesAsync();
 
+            _logger.LogInformation("Borrow request with code {BorrowCode} approved.", borrowCode);
             return Ok(new { message = "Borrow request approved.", borrowCode });
         }
+
         [HttpPost("borrow/{serialNumber}/{UserId}/{borrowCode}")]
         public async Task<IActionResult> BorrowBook(string serialNumber, string UserId, string borrowCode)
         {
+            _logger.LogInformation("Attempting to borrow book with SerialNumber: {SerialNumber} for User: {UserId}.", serialNumber, UserId);
+
             UserId = Uri.UnescapeDataString(UserId);
             var student = await _context.Users.FirstOrDefaultAsync(s => s.UserId == UserId);
-            
+
             if (student == null)
             {
+                _logger.LogWarning("User with UserId {UserId} not found.", UserId);
                 return NotFound(new { message = "Student not found." });
-            } 
+            }
+
             var UserType = student.UserType;
             var department = student.Department;
             var school = student.School;
             var book = await _context.Books.FirstOrDefaultAsync(b => b.SerialNumber == serialNumber);
+
             if (book == null)
             {
+                _logger.LogWarning("Book with SerialNumber {SerialNumber} not found.", serialNumber);
                 return NotFound(new { message = "Book not found." });
             }
 
             var pendingBorrow = await _context.PendingBorrows
-            .FirstOrDefaultAsync(pb => pb.UserId == UserId && pb.SerialNumber == serialNumber && pb.BorrowCode == borrowCode);
+                .FirstOrDefaultAsync(pb => pb.UserId == UserId && pb.SerialNumber == serialNumber && pb.BorrowCode == borrowCode);
 
             if (pendingBorrow == null || !pendingBorrow.IsApproved)
             {
+                _logger.LogWarning("Invalid or unapproved borrow code: {BorrowCode}.", borrowCode);
                 return BadRequest(new { message = "Invalid or unapproved borrow code." });
             }
 
-            // ✅ Expiration check (e.g., 24 hours)
+            // Expiration check
             if ((DateTime.UtcNow - pendingBorrow.RequestTime).TotalHours > 0.1)
             {
+                _logger.LogInformation("Borrow code {BorrowCode} has expired, removing request.", borrowCode);
                 _context.PendingBorrows.Remove(pendingBorrow);
                 await _context.SaveChangesAsync();
                 return BadRequest(new { message = "Borrow code has expired. Request a new one." });
@@ -366,16 +370,18 @@ namespace Library.Controllers
 
             if (book.Quantity <= 0)
             {
+                _logger.LogWarning("Book with SerialNumber {SerialNumber} is out of stock.", serialNumber);
                 return BadRequest(new { message = "Book is out of stock." });
             }
 
-            // ✅ Check if student has reached their borrow limit
-            int borrowLimit = student.GetBorrowLimit(); // Limit based on rating
+            // Check if student has reached their borrow limit
+            int borrowLimit = student.GetBorrowLimit();
             int currentlyBorrowed = await _context.BorrowRecords
-                .CountAsync(b => b.UserId == UserId && !b.IsReturned&&!b.IsOnline);
+                .CountAsync(b => b.UserId == UserId && !b.IsReturned && !b.IsOnline);
 
             if (currentlyBorrowed >= borrowLimit)
             {
+                _logger.LogWarning("User with UserId {UserId} has reached their borrow limit.", UserId);
                 return BadRequest(new { message = $"Borrow limit reached. You can only borrow {borrowLimit} books at a time." });
             }
 
@@ -385,38 +391,36 @@ namespace Library.Controllers
 
             if (existingBorrow != null)
             {
+                _logger.LogWarning("User with UserId {UserId} has already borrowed book with SerialNumber {SerialNumber}.", UserId, serialNumber);
                 return BadRequest(new { message = "You have already borrowed this book." });
             }
 
-            // Allowed borrow time (e.g., 48 hours)
+            // Allowed borrow time
             float allowedBorrowHours = student.UserType == "Lecturer" ? 96 : 48;
             DateTime dueDate = DateTime.UtcNow.AddHours(allowedBorrowHours);
 
             // Create borrow record
             var borrowRecord = new BorrowRecord
             {
-                Department= department,
-                School=school,
+                Department = department,
+                School = school,
                 UserId = UserId,
-                UserType= UserType,
+                UserType = UserType,
                 SerialNumber = serialNumber,
                 BorrowTime = DateTime.UtcNow,
                 AllowedBorrowHours = allowedBorrowHours,
                 DueDate = dueDate,
                 IsReturned = false,
-               
-                
             };
 
-            //student.BorrowedBooks += 1; // ✅ Increase BorrowedBooks count
-            book.Quantity -= 1;         // ✅ Reduce book quantity
-
+            book.Quantity -= 1; // Reduce book quantity
             _context.BorrowRecords.Add(borrowRecord);
 
-            // ✅ Remove the borrow request from PendingBorrows
+            // Remove the borrow request from PendingBorrows
             _context.PendingBorrows.Remove(pendingBorrow);
-
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation("User with UserId {UserId} successfully borrowed book with SerialNumber {SerialNumber}.", UserId, serialNumber);
 
             return Ok(new
             {
@@ -432,35 +436,40 @@ namespace Library.Controllers
         [HttpPost("borrowOnline/{serialNumber}/{userId}")]
         public async Task<IActionResult> BorrowBookOnline(string serialNumber, string userId)
         {
+            _logger.LogInformation("Attempting to borrow book online with SerialNumber: {SerialNumber} for User: {UserId}.", serialNumber, userId);
+
             userId = Uri.UnescapeDataString(userId);
             var student = await _context.Users.FirstOrDefaultAsync(s => s.UserId == userId);
 
             if (student == null)
             {
-                return NotFound(new { message = "Student not found."+userId });
+                _logger.LogWarning("User with UserId {UserId} not found.", userId);
+                return NotFound(new { message = "Student not found." });
             }
+
             var UserType = student.UserType;
             var department = student.Department;
             var school = student.School;
             var book = await _context.Books.FirstOrDefaultAsync(b => b.SerialNumber == serialNumber);
+
             if (book == null)
             {
+                _logger.LogWarning("Book with SerialNumber {SerialNumber} not found.", serialNumber);
                 return NotFound(new { message = "Book not found." });
             }
 
-            
-
             // Check if the user already borrowed this book
             var existingBorrow = await _context.BorrowRecords
-                .FirstOrDefaultAsync(b => b.UserId == userId && b.SerialNumber == serialNumber && !b.IsReturned&& b.IsOnline);
+                .FirstOrDefaultAsync(b => b.UserId == userId && b.SerialNumber == serialNumber && !b.IsReturned && b.IsOnline);
 
             if (existingBorrow != null)
             {
+                _logger.LogWarning("User with UserId {UserId} has already borrowed book online with SerialNumber {SerialNumber}.", userId, serialNumber);
                 return BadRequest(new { message = "You have already borrowed this book." });
             }
 
-            // Allowed borrow time (e.g., 48 hours)
-            float allowedBorrowHours =1 ;
+            // Allowed borrow time for online borrow (1 hour)
+            float allowedBorrowHours = student.UserType == "Lecturer" ? 1 : 1;
             DateTime dueDate = DateTime.UtcNow.AddHours(allowedBorrowHours);
 
             // Create borrow record
@@ -475,14 +484,13 @@ namespace Library.Controllers
                 AllowedBorrowHours = allowedBorrowHours,
                 DueDate = dueDate,
                 IsReturned = false,
-                IsOnline=true
+                IsOnline = true
             };
 
-          
-
             _context.BorrowRecords.Add(borrowRecord);
-
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation("User with UserId {UserId} successfully borrowed book online with SerialNumber {SerialNumber}.", userId, serialNumber);
 
             return Ok(new
             {
@@ -490,9 +498,115 @@ namespace Library.Controllers
                 borrowTime = borrowRecord.BorrowTime,
                 allowedBorrowHours,
                 dueDate,
-                
             });
         }
+        [HttpGet("books-by-borrow-history")]
+        public async Task<IActionResult> GetBooksByBorrowHistory(
+    [FromQuery] string? search = null,
+    [FromQuery] string? sort = "Id",
+    [FromQuery] string? order = "asc",
+    [FromQuery] string? filter = null,
+    [FromQuery] bool? IsOnline = null,
+    [FromQuery] string? UserId = null,
+    [FromQuery] string? UserType = null,
+    [FromQuery] string? SerialNumber = null,
+    [FromQuery] bool? overdue = null,
+    [FromQuery] bool? IsReturned = null,
+    [FromQuery] DateTime? startDate = null,
+    [FromQuery] DateTime? endDate = null,
+    [FromQuery] string? Department = null,
+    [FromQuery] string? School = null,
+    [FromQuery] int pageNumber = 1,
+    [FromQuery] int pageSize = 10)
+        {
+            _logger.LogInformation("Fetching books via borrow history filters...");
+
+            if (pageNumber < 1) pageNumber = 1;
+            if (pageSize < 1) pageSize = 10;
+
+            // Base borrow history query
+            var borrowQuery = _context.BorrowRecords.AsQueryable();
+
+            // Apply filters on BorrowHistory
+            if (!string.IsNullOrEmpty(UserId)) borrowQuery = borrowQuery.Where(b => b.UserId == UserId);
+            if (!string.IsNullOrEmpty(UserType)) borrowQuery = borrowQuery.Where(b => b.UserType == UserType);
+            if (!string.IsNullOrEmpty(SerialNumber)) borrowQuery = borrowQuery.Where(b => b.SerialNumber == SerialNumber);
+            if (IsReturned.HasValue) borrowQuery = borrowQuery.Where(b => b.IsReturned == IsReturned);
+            if (IsOnline.HasValue) borrowQuery = borrowQuery.Where(b => b.IsOnline == IsOnline);
+            if (overdue.HasValue) borrowQuery = borrowQuery.Where(b => b.Overdue == overdue);
+            if (startDate.HasValue) borrowQuery = borrowQuery.Where(b => b.BorrowTime >= startDate.Value);
+            if (endDate.HasValue) borrowQuery = borrowQuery.Where(b => b.BorrowTime <= endDate.Value);
+            if (!string.IsNullOrEmpty(Department)) borrowQuery = borrowQuery.Where(b => b.Department == Department);
+            if (!string.IsNullOrEmpty(School)) borrowQuery = borrowQuery.Where(b => b.School == School);
+
+            // Extract serial numbers from borrow history
+            var borrowedSerials = await borrowQuery
+                .Select(b => b.SerialNumber)
+                .Distinct()
+                .ToListAsync();
+
+            // Base book query using those serial numbers
+            var books = _context.Books.AsQueryable();
+            books = books.Where(b => borrowedSerials.Contains(b.SerialNumber));
+
+            // Apply book-level filters
+            if (!string.IsNullOrEmpty(search))
+            {
+                books = books.Where(b => b.Name.Contains(search) || b.SerialNumber.Contains(search));
+            }
+
+            if (!string.IsNullOrEmpty(filter))
+            {
+                switch (filter.ToLower())
+                {
+                    case "available":
+                        books = books.Where(b => b.Quantity > 0 || !string.IsNullOrEmpty(b.PDFPath));
+                        break;
+                    case "unavailable":
+                        books = books.Where(b => b.Quantity == 0 || string.IsNullOrEmpty(b.PDFPath));
+                        break;
+                }
+            }
+
+            //if (IsOnline.HasValue)
+            //{
+            //    books = IsOnline.Value
+            //        ? books.Where(b => !string.IsNullOrEmpty(b.PDFPath))
+            //        : books.Where(b => string.IsNullOrEmpty(b.PDFPath));
+            //}
+
+            // Sorting
+            var validSorts = new[] { "Id", "Name", "Author", "SerialNumber", "Quantity" };
+            if (validSorts.Contains(sort))
+            {
+                books = order.ToLower() == "desc"
+                    ? books.OrderByDescending(b => EF.Property<object>(b, sort))
+                    : books.OrderBy(b => EF.Property<object>(b, sort));
+            }
+            else
+            {
+                books = books.OrderBy(b => b.Id);
+            }
+
+            // Pagination
+            var totalRecords = await books.CountAsync();
+            var pagedBooks = await books
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var result = new
+            {
+                TotalRecords = totalRecords,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling(totalRecords / (double)pageSize),
+                Data = pagedBooks
+            };
+
+            return Ok(result);
+        }
+
 
         [HttpPost("request-return/{serialNumber}/{UserId}")]
         public async Task<IActionResult> RequestReturnCode(string serialNumber, string UserId)
@@ -503,6 +617,7 @@ namespace Library.Controllers
 
             if (borrowRecord == null)
             {
+                _logger.LogWarning($"No active borrow record found for UserId: {UserId}, SerialNumber: {serialNumber}");
                 return BadRequest(new { message = "No active borrow record found." });
             }
 
@@ -522,6 +637,7 @@ namespace Library.Controllers
             _context.PendingReturns.Add(pendingReturn);
             await _context.SaveChangesAsync();
 
+            _logger.LogInformation($"Return request submitted for UserId: {UserId}, SerialNumber: {serialNumber}, ReturnCode: {returnCode}");
             return Ok(new { message = "Return request submitted. Await admin approval.", returnCode });
         }
 
@@ -560,11 +676,12 @@ namespace Library.Controllers
 
                 _context.PendingReturns.RemoveRange(expiredEntities);
                 await _context.SaveChangesAsync();
+
+                _logger.LogInformation($"Expired return requests removed. Total expired: {expiredRequests.Count}");
             }
 
             return Ok(pendingReturns);
         }
-
 
         [HttpPost("approve-return/{returnCode}")]
         public async Task<IActionResult> ApproveReturn(string returnCode)
@@ -574,14 +691,15 @@ namespace Library.Controllers
 
             if (pendingReturn == null)
             {
+                _logger.LogWarning($"Return request not found or already approved. ReturnCode: {returnCode}");
                 return NotFound(new { message = "Return request not found or already approved." });
             }
 
             pendingReturn.IsApproved = true;
             await _context.SaveChangesAsync();
 
+            _logger.LogInformation($"Return request approved for ReturnCode: {returnCode}");
             return Ok(new { message = "Return request approved.", returnCode });
-
         }
 
         [HttpPost("return/{serialNumber}/{UserId}/{returnCode}")]
@@ -591,14 +709,16 @@ namespace Library.Controllers
             var book = await _context.Books.FirstOrDefaultAsync(b => b.SerialNumber == serialNumber);
             if (book == null)
             {
+                _logger.LogWarning($"Book not found for SerialNumber: {serialNumber}");
                 return NotFound(new { message = "Book not found." });
             }
 
             var borrowRecord = await _context.BorrowRecords
-                .FirstOrDefaultAsync(b => b.UserId == UserId && b.SerialNumber == serialNumber && !b.IsReturned&&!b.IsOnline);
+                .FirstOrDefaultAsync(b => b.UserId == UserId && b.SerialNumber == serialNumber && !b.IsReturned && !b.IsOnline);
 
             if (borrowRecord == null)
             {
+                _logger.LogWarning($"No active borrow record found for UserId: {UserId}, SerialNumber: {serialNumber}");
                 return BadRequest(new { message = "No active borrow record found." });
             }
 
@@ -608,6 +728,7 @@ namespace Library.Controllers
 
             if (pendingReturn == null || !pendingReturn.IsApproved)
             {
+                _logger.LogWarning($"Invalid or unapproved return code for ReturnCode: {returnCode}");
                 return BadRequest(new { message = "Invalid or unapproved return code." });
             }
 
@@ -616,6 +737,7 @@ namespace Library.Controllers
             {
                 _context.PendingReturns.Remove(pendingReturn);
                 await _context.SaveChangesAsync();
+                _logger.LogWarning($"Return code expired for UserId: {UserId}, SerialNumber: {serialNumber}");
                 return BadRequest(new { message = "Return code has expired. Request a new one." });
             }
 
@@ -636,10 +758,9 @@ namespace Library.Controllers
             _context.PendingReturns.Remove(pendingReturn);
             await _context.SaveChangesAsync();
 
+            _logger.LogInformation($"Book returned successfully for UserId: {UserId}, SerialNumber: {serialNumber}, ReturnTime: {returnTime}, IsLate: {isLate}");
             return Ok(new { message = "Book returned successfully.", returnTime, isLate, newRating = student?.Rating });
         }
-
-
 
         [HttpGet("image/{serialNumber}")]
         public IActionResult GetBookImage(string serialNumber)
@@ -647,6 +768,7 @@ namespace Library.Controllers
             var book = _context.Books.FirstOrDefault(b => b.SerialNumber == serialNumber);
             if (book == null || string.IsNullOrEmpty(book.ImagePath))
             {
+                _logger.LogWarning($"Book or image not found for SerialNumber: {serialNumber}");
                 return NotFound(new { message = "Book or image not found" });
             }
 
@@ -656,18 +778,21 @@ namespace Library.Controllers
 
             if (!System.IO.File.Exists(imagePath))
             {
+                _logger.LogWarning($"Image file does not exist for path: {imagePath}");
                 return NotFound(new { message = "Image file does not exist", path = imagePath });
             }
 
             var imageFileStream = System.IO.File.OpenRead(imagePath);
             return File(imageFileStream, "image/png"); // Ensure the correct MIME type
         }
+
         [HttpGet("PDF/{serialNumber}")]
         public IActionResult GetBookPDF(string serialNumber)
         {
             var book = _context.Books.FirstOrDefault(b => b.SerialNumber == serialNumber);
             if (book == null || string.IsNullOrEmpty(book.PDFPath))
             {
+                _logger.LogWarning($"Book or PDF not found for SerialNumber: {serialNumber}");
                 return NotFound(new { message = "Book or PDF not found" });
             }
 
@@ -678,6 +803,7 @@ namespace Library.Controllers
             // Check if the file actually exists
             if (!System.IO.File.Exists(PDFPath))
             {
+                _logger.LogWarning($"PDF file does not exist for path: {PDFPath}");
                 return NotFound(new { message = "PDF file does not exist", path = PDFPath });
             }
 
@@ -687,69 +813,75 @@ namespace Library.Controllers
             return File(fileStream, "application/pdf", fileName);
         }
 
+
         [HttpGet("PDFReader/{serialNumber}/{userId}")]
         public IActionResult GetBookPDF(string serialNumber, string userId)
         {
             userId = Uri.UnescapeDataString(userId);
             try
             {
-                // Fetch the book by its serial number
+                // Log the start of the method
+                _logger.LogInformation($"Attempting to retrieve PDF for book {serialNumber} by user {userId}");
+
                 var book = _context.Books.FirstOrDefault(b => b.SerialNumber == serialNumber);
                 if (book == null || string.IsNullOrEmpty(book.PDFPath))
                 {
+                    _logger.LogWarning($"Book with serial number {serialNumber} not found or PDF not available.");
                     return NotFound(new { message = "Book or PDF not found" });
                 }
 
-                // Fetch the borrow record for the user and the specific book
                 var borrowRecord = _context.BorrowRecords
                     .FirstOrDefault(br => br.UserId == userId && br.SerialNumber == serialNumber && br.IsOnline == true && !br.IsReturned);
 
                 if (borrowRecord == null)
                 {
+                    _logger.LogWarning($"No active borrow record found for user {userId} and book {serialNumber}.");
                     return BadRequest(new { message = "No active borrow record found, or the book has been returned" });
                 }
 
-                // Build full path to the file
                 var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Book");
                 var PDFPath = Path.Combine(uploadsFolder, Path.GetFileName(book.PDFPath));
 
-                // Check if the file actually exists
                 if (!System.IO.File.Exists(PDFPath))
                 {
+                    _logger.LogWarning($"PDF file does not exist at path: {PDFPath}");
                     return NotFound(new { message = "PDF file does not exist", path = PDFPath });
                 }
 
                 var fileStream = System.IO.File.OpenRead(PDFPath);
                 var fileName = book.Name;
 
+                _logger.LogInformation($"Successfully retrieved PDF for book {serialNumber} by user {userId}");
+
                 return File(fileStream, "application/pdf", fileName);
             }
             catch (Exception ex)
             {
-                // Log the error if necessary
+                // Log the exception
+                _logger.LogError(ex, "An error occurred while retrieving the PDF file.");
                 return StatusCode(500, new { message = "An error occurred while processing your request", error = ex.Message });
             }
         }
 
         // POST: api/Books (Create Book with Image)
         [HttpPost]
-        public async Task<ActionResult<Book>> CreateBook([FromForm] CreateBookDto createBookDto, IFormFile file,IFormFile? PDF)
+        public async Task<ActionResult<Book>> CreateBook([FromForm] CreateBookDto createBookDto, IFormFile file, IFormFile? PDF)
         {
             if (!ModelState.IsValid)
             {
+                _logger.LogWarning("ModelState is invalid.");
                 return BadRequest(ModelState);
             }
 
             if (file == null)
             {
+                _logger.LogWarning("An image is required.");
                 return BadRequest(new { message = "An image is required." });
             }
 
-           
-
-
             if (await _context.Books.AnyAsync(b => b.SerialNumber == createBookDto.SerialNumber))
             {
+                _logger.LogWarning($"Book with serial number {createBookDto.SerialNumber} already exists.");
                 return BadRequest(new { message = "Serial Number must be unique." });
             }
 
@@ -762,11 +894,13 @@ namespace Library.Controllers
                 Description = createBookDto.Description,
                 Quantity = createBookDto.Quantity,
                 ImagePath = await SaveAndResizeImage(file),
-                PDFPath= await SavePDF(PDF)
+                PDFPath = await SavePDF(PDF)
             };
 
             _context.Books.Add(book);
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation($"Successfully created book with serial number {book.SerialNumber}");
 
             return CreatedAtAction(nameof(GetBook), new { serialNumber = book.SerialNumber }, book);
         }
@@ -778,6 +912,7 @@ namespace Library.Controllers
             var book = await _context.Books.FirstOrDefaultAsync(b => b.SerialNumber == serialNumber);
             if (book == null)
             {
+                _logger.LogWarning($"Book with serial number {serialNumber} not found.");
                 return NotFound(new { message = "Book not found." });
             }
 
@@ -789,7 +924,6 @@ namespace Library.Controllers
 
             if (file != null)
             {
-                // Delete old image if it exists (except default image)
                 if (!string.IsNullOrEmpty(book.ImagePath) && book.ImagePath != "/images/default-book-cover.jpg")
                 {
                     var oldImagePath = Path.Combine(_imageFolderPath, Path.GetFileName(book.ImagePath));
@@ -805,23 +939,25 @@ namespace Library.Controllers
             _context.Entry(book).State = EntityState.Modified;
             await _context.SaveChangesAsync();
 
+            _logger.LogInformation($"Successfully updated book with serial number {serialNumber}");
+
             return NoContent();
         }
+
         [HttpGet("borrow-history")]
         public async Task<IActionResult> GetAllBorrowHistory(
-    [FromQuery] string? UserId,
-    [FromQuery] string? UserType,
-    [FromQuery] string? serialnumber,
-    [FromQuery] bool? overdue,
-    [FromQuery] bool? IsReturned,
-    [FromQuery] bool? IsOnline,
-    [FromQuery] DateTime? startDate,
-    [FromQuery] DateTime? endDate,
-    [FromQuery] string? Department,
-    [FromQuery] string? School,
-    [FromQuery] int pageNumber = 1,  // Default to page 1
-    [FromQuery] int pageSize = 10    // Default to 10 items per page
-)
+            [FromQuery] string? UserId,
+            [FromQuery] string? UserType,
+            [FromQuery] string? serialnumber,
+            [FromQuery] bool? overdue,
+            [FromQuery] bool? IsReturned,
+            [FromQuery] bool? IsOnline,
+            [FromQuery] DateTime? startDate,
+            [FromQuery] DateTime? endDate,
+            [FromQuery] string? Department,
+            [FromQuery] string? School,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
         {
             if (!string.IsNullOrEmpty(UserId))
             {
@@ -830,28 +966,17 @@ namespace Library.Controllers
 
             var query = _context.BorrowRecords.AsQueryable();
 
-            if (startDate.HasValue)
-                query = query.Where(b => b.BorrowTime >= startDate.Value);
-            if (!string.IsNullOrEmpty(Department))
-                query = query.Where(b => b.Department.Contains(Department));
-            if (!string.IsNullOrEmpty(UserType))
-                query = query.Where(b => b.UserType.Contains(UserType));
-            if (!string.IsNullOrEmpty(serialnumber))
-                query = query.Where(b => b.SerialNumber.Contains(serialnumber));
-            if (!string.IsNullOrEmpty(School))
-                query = query.Where(b => b.School.Contains(School));
-            if (!string.IsNullOrEmpty(UserId))
-                query = query.Where(b => b.UserId.Contains(UserId));
-            if (endDate.HasValue)
-                query = query.Where(b => b.BorrowTime <= endDate.Value);
-            if (overdue.HasValue)
-                query = query.Where(b => b.Overdue == overdue.Value);
-            if (IsReturned.HasValue)
-                query = query.Where(b => b.IsReturned == IsReturned.Value);
-            if (IsOnline.HasValue)
-                query = query.Where(b => b.IsOnline == IsOnline.Value);
+            if (startDate.HasValue) query = query.Where(b => b.BorrowTime >= startDate.Value);
+            if (!string.IsNullOrEmpty(Department)) query = query.Where(b => b.Department.Contains(Department));
+            if (!string.IsNullOrEmpty(UserType)) query = query.Where(b => b.UserType.Contains(UserType));
+            if (!string.IsNullOrEmpty(serialnumber)) query = query.Where(b => b.SerialNumber.Contains(serialnumber));
+            if (!string.IsNullOrEmpty(School)) query = query.Where(b => b.School.Contains(School));
+            if (!string.IsNullOrEmpty(UserId)) query = query.Where(b => b.UserId.Contains(UserId));
+            if (endDate.HasValue) query = query.Where(b => b.BorrowTime <= endDate.Value);
+            if (overdue.HasValue) query = query.Where(b => b.Overdue == overdue.Value);
+            if (IsReturned.HasValue) query = query.Where(b => b.IsReturned == IsReturned.Value);
+            if (IsOnline.HasValue) query = query.Where(b => b.IsOnline == IsOnline.Value);
 
-            // Total records before pagination
             int totalRecords = await query.CountAsync();
             int totalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
             int currentlyBorrowed = await _context.BorrowRecords
@@ -861,7 +986,6 @@ namespace Library.Controllers
             var totalLate = await query.CountAsync(b => b.IsReturned && b.ReturnTime > b.DueDate);
             var totalNotReturned = await query.CountAsync(b => !b.IsReturned);
 
-            // Apply Pagination
             var borrowHistory = await query.OrderByDescending(b => b.BorrowTime)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
@@ -878,10 +1002,11 @@ namespace Library.Controllers
                     b.AllowedBorrowHours,
                     b.DueDate,
                     b.ReturnTime,
-                    b.Overdue,
-                    CurrentlyBorrowed = _context.BorrowRecords.Count(br => br.UserId == b.UserId && !br.IsReturned)
+                    b.Overdue
                 })
                 .ToListAsync();
+
+            _logger.LogInformation($"Fetched borrow history with {borrowHistory.Count} records for page {pageNumber}");
 
             return Ok(new
             {
@@ -898,27 +1023,32 @@ namespace Library.Controllers
             });
         }
 
+
         [HttpGet("borrow-history/{UserId}")]
-        public async Task<IActionResult> GetBorrowHistory(string UserId, [FromQuery] bool? overdue, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, [FromQuery] string? Department )
+        public async Task<IActionResult> GetBorrowHistory(string UserId, [FromQuery] bool? overdue, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, [FromQuery] string? Department)
         {
             UserId = Uri.UnescapeDataString(UserId);
+            _logger.LogInformation($"Fetching borrow history for UserId: {UserId}");
+
             var query = _context.BorrowRecords
                 .Where(b => b.UserId == UserId)
                 .AsQueryable();
-            
 
             if (startDate.HasValue)
             {
                 query = query.Where(b => b.BorrowTime >= startDate.Value);
+                _logger.LogInformation($"Filtering borrow records from {startDate.Value}");
             }
             if (!string.IsNullOrEmpty(Department))
             {
                 query = query.Where(b => b.Department == Department);
+                _logger.LogInformation($"Filtering borrow records for Department: {Department}");
             }
 
             if (endDate.HasValue)
             {
                 query = query.Where(b => b.BorrowTime <= endDate.Value);
+                _logger.LogInformation($"Filtering borrow records until {endDate.Value}");
             }
 
             // Compute the statistics
@@ -929,21 +1059,25 @@ namespace Library.Controllers
             var totalLate = await query.CountAsync(b => b.IsReturned && b.ReturnTime > b.DueDate);
             var totalNotReturned = await query.CountAsync(b => !b.IsReturned);
 
+            _logger.LogInformation($"Currently Borrowed: {currentlyBorrowed}, Total Borrowed: {totalBorrowed}, Total Returned: {totalReturned}, Total Late: {totalLate}, Total Not Returned: {totalNotReturned}");
+
             var borrowHistory = await query.OrderByDescending(b => b.BorrowTime)
                  .Select(b => new
-                {   b.IsReturned,
-                    b.SerialNumber,
-                    b.BorrowTime,
-                    b.AllowedBorrowHours,
-                    b.DueDate,
-                    b.ReturnTime,
-                    b.Overdue,
-                    b.IsLateReturn
-                })
+                 {
+                     b.IsReturned,
+                     b.SerialNumber,
+                     b.BorrowTime,
+                     b.AllowedBorrowHours,
+                     b.DueDate,
+                     b.ReturnTime,
+                     b.Overdue,
+                     b.IsLateReturn
+                 })
                 .ToListAsync();
 
             return Ok(new
-            {   currentlyborrrowed =currentlyBorrowed,
+            {
+                currentlyBorrowed = currentlyBorrowed,
                 TotalBorrowed = totalBorrowed,
                 TotalReturned = totalReturned,
                 TotalLate = totalLate,
@@ -952,7 +1086,6 @@ namespace Library.Controllers
             });
         }
 
-
         [HttpPatch("{serialNumber}")]
         public async Task<IActionResult> PatchBook(string serialNumber, [FromBody] JsonPatchDocument<Book> patchDoc)
         {
@@ -960,6 +1093,8 @@ namespace Library.Controllers
             {
                 return BadRequest(new { message = "Invalid or empty patch document." });
             }
+
+            _logger.LogInformation($"Patch request for Book with Serial Number: {serialNumber}");
 
             var book = await _context.Books.FirstOrDefaultAsync(b => b.SerialNumber == serialNumber);
             if (book == null)
@@ -993,10 +1128,12 @@ namespace Library.Controllers
             {
                 _context.Entry(book).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
+                _logger.LogInformation($"Book with Serial Number: {serialNumber} updated successfully.");
                 return Ok(new { message = "Book updated successfully.", book });
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Error occurred while updating book with Serial Number: {serialNumber}. Error: {ex.Message}");
                 return StatusCode(500, new { message = "An error occurred while updating the book.", error = ex.Message });
             }
         }
@@ -1004,6 +1141,8 @@ namespace Library.Controllers
         [HttpGet("export")]
         public async Task<IActionResult> ExportBooks()
         {
+            _logger.LogInformation("Exporting books to Excel...");
+
             var books = await _context.Books.ToListAsync();
 
             using (var workbook = new XLWorkbook())
@@ -1015,7 +1154,7 @@ namespace Library.Controllers
                 worksheet.Cell(1, 4).Value = "Year";
                 worksheet.Cell(1, 5).Value = "Quantity";
                 worksheet.Cell(1, 6).Value = "Image Path";
-                worksheet.Cell(1, 6).Value = "Description";
+                worksheet.Cell(1, 7).Value = "Description";
 
                 int row = 2;
                 foreach (var book in books)
@@ -1034,6 +1173,7 @@ namespace Library.Controllers
                 {
                     workbook.SaveAs(stream);
                     var content = stream.ToArray();
+                    _logger.LogInformation("Books exported successfully.");
                     return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Books.xlsx");
                 }
             }
@@ -1046,6 +1186,8 @@ namespace Library.Controllers
             {
                 return BadRequest("No file uploaded.");
             }
+
+            _logger.LogInformation($"Importing books from file: {file.FileName}");
 
             using (var stream = new MemoryStream())
             {
@@ -1068,7 +1210,7 @@ namespace Library.Controllers
                         int year;
                         int quantity;
 
-                        if (string.IsNullOrEmpty(serialNumber) || string.IsNullOrEmpty(name) || string.IsNullOrEmpty(author) || string.IsNullOrEmpty(description)|| string.IsNullOrEmpty(image_path) ||
+                        if (string.IsNullOrEmpty(serialNumber) || string.IsNullOrEmpty(name) || string.IsNullOrEmpty(author) || string.IsNullOrEmpty(description) || string.IsNullOrEmpty(image_path) ||
                             !int.TryParse(row.Cell(6).GetString(), out year) || !int.TryParse(row.Cell(7).GetString(), out quantity))
                         {
                             skippedBooks.Add($"Row {row.RowNumber()}: Invalid or missing data.");
@@ -1088,8 +1230,8 @@ namespace Library.Controllers
                             Author = author,
                             Year = year,
                             Quantity = quantity,
-                            Description =description,
-                            ImagePath=image_path
+                            Description = description,
+                            ImagePath = image_path
                         };
 
                         books.Add(book);
@@ -1099,6 +1241,7 @@ namespace Library.Controllers
                     {
                         _context.Books.AddRange(books);
                         await _context.SaveChangesAsync();
+                        _logger.LogInformation($"{books.Count} books imported successfully.");
                     }
 
                     return Ok(new
@@ -1110,34 +1253,38 @@ namespace Library.Controllers
             }
         }
 
-        // DELETE: api/Books/{serialNumber} (Delete a book)
         [HttpDelete("{serialNumber}")]
         public async Task<IActionResult> DeleteBook(string serialNumber)
         {
+            _logger.LogInformation($"Deleting book with Serial Number: {serialNumber}");
+
             var book = await _context.Books.FirstOrDefaultAsync(b => b.SerialNumber == serialNumber);
             if (book == null)
             {
                 return NotFound(new { message = "Book not found." });
             }
 
-            
-                var imagePath = Path.Combine(_imageFolderPath, Path.GetFileName(book.ImagePath));
-                if (System.IO.File.Exists(imagePath))
-                {
-                    System.IO.File.Delete(imagePath);
-                }
+            var imagePath = Path.Combine(_imageFolderPath, Path.GetFileName(book.ImagePath));
+            if (System.IO.File.Exists(imagePath))
+            {
+                _logger.LogInformation($"Deleting image for book with Serial Number: {serialNumber}");
+                System.IO.File.Delete(imagePath);
+            }
+
             var PDFPath = Path.Combine(_imageFolderPath, Path.GetFileName(book.PDFPath));
             if (System.IO.File.Exists(PDFPath))
             {
+                _logger.LogInformation($"Deleting PDF for book with Serial Number: {serialNumber}");
                 System.IO.File.Delete(PDFPath);
             }
 
-
             _context.Books.Remove(book);
             await _context.SaveChangesAsync();
+            _logger.LogInformation($"Book with Serial Number: {serialNumber} deleted successfully.");
 
             return NoContent();
         }
+
         private async Task<string> SaveAndResizeImage(IFormFile file)
         {
             var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);

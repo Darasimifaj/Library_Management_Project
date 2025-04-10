@@ -13,5 +13,6 @@ namespace Library.Helpers
         {
             return BCrypt.Net.BCrypt.Verify(password, hash);
         }
+
     }
 }
