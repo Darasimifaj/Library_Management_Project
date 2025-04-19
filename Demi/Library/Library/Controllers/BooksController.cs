@@ -161,7 +161,6 @@ namespace Library.Controllers
         }
 
         // PATCH: api/Books/upload-image
-        //bbbbbbb
         [HttpPatch("upload-image")]
         public async Task<IActionResult> UploadBookImage([FromQuery] string serialNumber, IFormFile file)
         {
@@ -979,14 +978,11 @@ namespace Library.Controllers
             if (IsOnline.HasValue) query = query.Where(b => b.IsOnline == IsOnline.Value);
 
             int totalRecords = await query.CountAsync();
-            int totalBooks = await _context.Books.CountAsync();
-            var totalDistinctBooks = await query.Select(b => b.SerialNumber).Distinct().CountAsync();
             int totalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
             int currentlyBorrowed = await _context.BorrowRecords
                 .CountAsync(b => b.UserId == UserId && !b.IsReturned);
             var totalBorrowed = await query.CountAsync();
             var totalReturned = await query.CountAsync(b => b.IsReturned);
-            var totalOvedue = await query.CountAsync(b => b.Overdue);
             var totalLate = await query.CountAsync(b => b.IsReturned && b.ReturnTime > b.DueDate);
             var totalNotReturned = await query.CountAsync(b => !b.IsReturned);
 
@@ -1013,11 +1009,8 @@ namespace Library.Controllers
             _logger.LogInformation($"Fetched borrow history with {borrowHistory.Count} records for page {pageNumber}");
 
             return Ok(new
-            {  
-                TotalBooks=totalBooks,
-                TotalDistinctBooks=totalDistinctBooks,
-                TotalOvedue=totalOvedue,
-                currentlyborrowed = currentlyBorrowed,
+            {
+                currentlyborrrowed = currentlyBorrowed,
                 TotalBorrowed = totalBorrowed,
                 TotalReturned = totalReturned,
                 TotalLate = totalLate,
@@ -1028,24 +1021,6 @@ namespace Library.Controllers
                 CurrentPage = pageNumber,
                 BorrowHistory = borrowHistory
             });
-        }
-        [HttpGet("borrowed-daily")]
-        public async Task<IActionResult> GetDailyBorrowStats()
-        {
-            var today = DateTime.UtcNow.Date;
-            var sevenDaysAgo = today.AddDays(-6);
-
-            var stats = await _context.BorrowRecords
-                .Where(b => b.BorrowTime.Date >= sevenDaysAgo)
-                .GroupBy(b => b.BorrowTime.Date)
-                .Select(g => new {
-                    Date = g.Key,
-                    Count = g.Count()
-                })
-                .OrderBy(x => x.Date)
-                .ToListAsync();
-
-            return Ok(stats);
         }
 
 
@@ -1179,8 +1154,7 @@ namespace Library.Controllers
                 worksheet.Cell(1, 4).Value = "Year";
                 worksheet.Cell(1, 5).Value = "Quantity";
                 worksheet.Cell(1, 6).Value = "Image Path";
-                worksheet.Cell(1, 7).Value = "Pdf Path";
-                worksheet.Cell(1, 8).Value = "Description";
+                worksheet.Cell(1, 7).Value = "Description";
 
                 int row = 2;
                 foreach (var book in books)
@@ -1191,8 +1165,7 @@ namespace Library.Controllers
                     worksheet.Cell(row, 4).Value = book.Year;
                     worksheet.Cell(row, 5).Value = book.Quantity;
                     worksheet.Cell(row, 6).Value = book.ImagePath ?? "N/A";
-                    worksheet.Cell(row, 7).Value = book.PDFPath ?? "N/A";
-                    worksheet.Cell(row, 8).Value = book.Description;
+                    worksheet.Cell(row, 7).Value = book.Description;
                     row++;
                 }
 
@@ -1232,16 +1205,13 @@ namespace Library.Controllers
                         string serialNumber = row.Cell(1).GetString().Trim();
                         string name = row.Cell(2).GetString().Trim();
                         string author = row.Cell(3).GetString().Trim();
+                        string description = row.Cell(4).GetString().Trim();
+                        string image_path = row.Cell(5).GetString().Trim();
                         int year;
                         int quantity;
-                        
-                        string image_path = row.Cell(6).GetString().Trim();
-                        string pdf_path = row.Cell(7).GetString().Trim();
-                        string description = row.Cell(8).GetString().Trim();
-                        
 
-                        if (string.IsNullOrEmpty(serialNumber) || string.IsNullOrEmpty(name) || string.IsNullOrEmpty(author) || string.IsNullOrEmpty(description) || string.IsNullOrEmpty(image_path) || string.IsNullOrEmpty(pdf_path) ||
-                            !int.TryParse(row.Cell(4).GetString(), out year) || !int.TryParse(row.Cell(5).GetString(), out quantity))
+                        if (string.IsNullOrEmpty(serialNumber) || string.IsNullOrEmpty(name) || string.IsNullOrEmpty(author) || string.IsNullOrEmpty(description) || string.IsNullOrEmpty(image_path) ||
+                            !int.TryParse(row.Cell(6).GetString(), out year) || !int.TryParse(row.Cell(7).GetString(), out quantity))
                         {
                             skippedBooks.Add($"Row {row.RowNumber()}: Invalid or missing data.");
                             continue;
@@ -1261,8 +1231,7 @@ namespace Library.Controllers
                             Year = year,
                             Quantity = quantity,
                             Description = description,
-                            ImagePath = image_path,
-                            PDFPath=pdf_path
+                            ImagePath = image_path
                         };
 
                         books.Add(book);

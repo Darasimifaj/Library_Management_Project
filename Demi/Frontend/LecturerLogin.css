@@ -56,13 +56,13 @@ nav ul:hover {
   cursor: pointer;
 }
 .Home a {
-  color: #000000e8;
+  color: #003898;
 }
 .Admin a {
   color: #000000e8;
 }
 .Login a {
-  color: #000000e8;
+  color: #611991;
 }
 
 .nav-container {
@@ -85,7 +85,7 @@ main {
   margin: 100px 0;
 }
 .RealDetails {
-  width: 60%;
+  width: 50%;
 }
 .LoginHeader {
   font-weight: normal;
@@ -258,8 +258,4 @@ main {
 /* END */
 .Logo h3 {
   margin: 20px 0;
-}
-
-.Side{
-  cursor: pointer;
 }

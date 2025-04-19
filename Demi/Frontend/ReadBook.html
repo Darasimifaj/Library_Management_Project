@@ -2,16 +2,14 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/x-icon" href="Logo/Frame (1).svg" />
-    <title>Reader</title>
+    <title>Custom PDF Viewer</title>
     <style>
       body,
       html {
         margin: 0;
         padding: 0;
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        font-family: Arial, sans-serif;
         height: 100vh;
-        background-color: #f5f6fa;
       }
 
       #wrapper {
@@ -22,19 +20,19 @@
       #mainContainer {
         display: flex;
         flex-direction: column;
-        background: #ffffff;
+        background: white;
         flex: 1;
       }
 
       #toolbar {
         justify-content: space-between;
-        height: 50px;
-        background: #ffffff;
-        color: #611991;
+        height: 40px;
+        background: white;
+        color: #bd5bca;
         display: flex;
         align-items: center;
-        padding: 0 20px;
-        border-bottom: 1px solid #ddd;
+        padding: 15px;
+        gap: 10px;
         user-select: none;
       }
 
@@ -47,11 +45,10 @@
       #thumbnailWrapper {
         display: flex;
         flex-direction: column;
-        width: 18%;
-        background: #f0f0f5;
+        width: 150px;
+        background: rgb(175, 174, 174);
         overflow-y: auto;
         transition: width 0.3s ease;
-        border-right: 1px solid #ddd;
       }
 
       #thumbnailWrapper.hidden {
@@ -60,69 +57,55 @@
       }
 
       #thumbnailContainer {
-        padding: 10px;
+        padding: 10px 0;
         display: flex;
         flex-direction: column;
-        gap: 12px;
       }
 
       .thumbnailWrapper {
         text-align: center;
-        padding: 10px 5px;
-        color: #333;
+        padding: 5px;
+        color: white;
         font-size: 14px;
-        background-color: #fff;
-        border-radius: 8px;
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
       }
 
       .thumbnail {
-        width: 80px;
+        width: 100px;
         margin: 0 auto;
         cursor: pointer;
         border: 2px solid transparent;
-        border-radius: 4px;
-        transition: border-color 0.2s ease;
         display: block;
       }
 
-      .thumbnail:hover {
-        border-color: #8a4ef3;
-      }
-
       .thumbnail.active {
-        border-color: #8a4ef3;
+        border-color: #42a5f5;
       }
 
       #pdfViewer {
         overflow-y: auto;
         flex: 1;
         padding: 20px;
-        background: #eaeaf1;
+        background: rgb(175, 174, 174);
       }
 
       canvas {
-        background: #ffffff;
-        margin-bottom: 20px;
+        background: white;
+        margin-bottom: 10px;
         display: block;
         margin-left: auto;
         margin-right: auto;
-        border-radius: 6px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       }
 
       button {
-        background: transparent;
-        color: #611991;
-        font-size: 18px;
+        background: #424242;
+        color: white;
         border: none;
+        padding: 5px 10px;
         cursor: pointer;
-        padding: 5px;
-        transition: color 0.2s ease;
       }
 
       button:hover {
-        color: #b692f6;
+        background: #616161;
       }
 
       #loader {
@@ -140,7 +123,7 @@
         width: 50px;
         height: 50px;
         border: 6px solid #ccc;
-        border-top: 6px solid #611991;
+        border-top: 6px solid #2f2f2f;
         border-radius: 50%;
         animation: spin 1s linear infinite;
       }
@@ -150,63 +133,30 @@
           transform: rotate(360deg);
         }
       }
-
-      /* Custom scrollbar for better UX */
-      #thumbnailWrapper::-webkit-scrollbar,
-      #pdfViewer::-webkit-scrollbar {
-        width: 8px;
-      }
-
-      #thumbnailWrapper::-webkit-scrollbar-thumb,
-      #pdfViewer::-webkit-scrollbar-thumb {
-        background-color: #c3b8e0;
-        border-radius: 10px;
-      }
-
-      #thumbnailWrapper::-webkit-scrollbar-track,
-      #pdfViewer::-webkit-scrollbar-track {
-        background-color: #eaeaf1;
-      }
-      #zoomIn,
-      #zoomOut {
-        font-size: 19px;
-      }
-
-      @media (max-width: 768px) {
-        #thumbnailWrapper {
-          display: none;
-        }
-      }
     </style>
   </head>
   <body oncontextmenu="return false">
-    <div id="loader"><div class="spinner"></div></div>
+    <div id="loader">
+      <div class="spinner"></div>
+    </div>
     <div id="wrapper">
       <div id="mainContainer">
         <div id="toolbar">
-          <div style="display: flex; align-items: center; gap: 10px">
-            <button id="toggleSidebar">
-              <img
-                style="width: 15px"
-                src="MainImages/Full Hamburger (2).svg"
-                alt=""
-              />
-            </button>
-            <p id="Name">Name</p>
+          <div style="display: flex">
+            <button id="toggleSidebar">☰</button>
+            <p>Name</p>
           </div>
           <div>
-            <span style="color: #611991">Page</span>
-            <span id="pageInfo">1 / 1</span>
+            <span id="pageInfo">Page 1 / 1</span>
           </div>
-          <div style="display: flex; gap: 10px; align-items: center">
+          <div>
             <button id="zoomOut">-</button>
             <span id="zoomLevel">100%</span>
             <button id="zoomIn">+</button>
-            <button id="fullscreenBtn">⛶</button>
           </div>
         </div>
         <div id="pdfAndThumbContainer">
-          <div id="thumbnailWrapper" class="hidden">
+          <div id="thumbnailWrapper">
             <div id="thumbnailContainer"></div>
           </div>
           <div id="pdfViewer"></div>
@@ -216,64 +166,25 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>
-      function authorizedFetch(url, options = {}) {
-        const token = sessionStorage.getItem("token"); // Your JWT token
-        const apiKey = "your-api-key"; // Replace with your actual API key
-
-        const headers = {
-          ...options.headers,
-          "Content-Type": "application/json",
-          "x-api-key": apiKey,
-          Authorization: `Bearer ${token}`,
-        };
-
-        return fetch(url, {
-          ...options,
-          headers,
-        });
-      }
-      function truncateText(text, wordCount) {
-        let words = text.split(" ");
-        return words.length > wordCount
-          ? words.slice(0, wordCount).join(" ") + "..."
-          : text;
-      }
       const pdfjsLib = window["pdfjs-dist/build/pdf"];
       pdfjsLib.GlobalWorkerOptions.workerSrc =
         "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-
       const serialNumber = localStorage.getItem("selectedSerial");
-      const Name = localStorage.getItem("bookName") || "Book";
-      document.getElementById("Name").textContent = truncateText(Name, 7);
-      document.getElementById("Name").title = Name;
-      document.getElementById("Name").style.color = "#333333";
+      const url = `https://localhost:44355/api/Books/PDF/BOOK1`;
 
-      const url = `https://localhost:44354/api/Books/PDF/${serialNumber}`;
       let pdfDoc = null;
       let scale = 1.0;
       let currentPage = 1;
+
       const viewer = document.getElementById("pdfViewer");
       const thumbnailWrapper = document.getElementById("thumbnailWrapper");
       const thumbnailContainer = document.getElementById("thumbnailContainer");
       const pageInfo = document.getElementById("pageInfo");
       const zoomLevel = document.getElementById("zoomLevel");
+      const toggleSidebar = document.getElementById("toggleSidebar");
 
-      document.getElementById("toggleSidebar").onclick = () => {
-        const isHiding = thumbnailWrapper.classList.contains("hidden");
-
-        // Toggle the sidebar
+      toggleSidebar.onclick = () => {
         thumbnailWrapper.classList.toggle("hidden");
-
-        // // Update scale depending on the action
-        // if (isHiding) {
-        //   // Sidebar was hidden → now showing → zoom in
-        //   scale = Math.min(scale + 0.1, 2);
-        // } else {
-        //   // Sidebar was visible → now hiding → zoom out
-        //   scale = Math.max(scale - 0.1, 0.5);
-        // }
-        // updateZoomDisplay();
-        // renderAllPages();
       };
 
       const renderPage = (page, container, scale) => {
@@ -289,6 +200,8 @@
       };
 
       const renderThumbnails = async (pdf) => {
+        const thumbs = [];
+
         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
           const page = await pdf.getPage(pageNum);
           const canvas = document.createElement("canvas");
@@ -298,6 +211,7 @@
 
           canvas.height = viewport.height;
           canvas.width = viewport.width;
+
           await page.render({ canvasContext: context, viewport }).promise;
 
           const wrapper = document.createElement("div");
@@ -314,14 +228,17 @@
               .scrollIntoView({ behavior: "smooth" });
           };
 
-          thumbnailContainer.appendChild(wrapper);
+          thumbs.push({ pageNum, wrapper });
         }
+
+        thumbs.sort((a, b) => a.pageNum - b.pageNum);
+        thumbs.forEach(({ wrapper }) =>
+          thumbnailContainer.appendChild(wrapper)
+        );
+        return Promise.resolve();
       };
 
       const renderAllPages = () => {
-        const scrollTop = viewer.scrollTop;
-        const scrollHeight = viewer.scrollHeight;
-
         viewer.innerHTML = "";
         for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
           pdfDoc.getPage(pageNum).then((page) => {
@@ -331,10 +248,6 @@
             renderPage(page, pageDiv, scale);
           });
         }
-
-        setTimeout(() => {
-          viewer.scrollTop = (scrollTop / scrollHeight) * viewer.scrollHeight;
-        }, 200); // Delay to ensure render is complete
       };
 
       const updateZoomDisplay = () => {
@@ -353,18 +266,9 @@
         renderAllPages();
       };
 
-      document.getElementById("fullscreenBtn").onclick = () => {
-        const elem = document.documentElement;
-        if (!document.fullscreenElement) {
-          elem
-            .requestFullscreen()
-            .catch((err) => alert(`Error: ${err.message}`));
-        } else {
-          document.exitFullscreen();
-        }
-      };
+      document.getElementById("loader").style.display = "flex";
 
-      authorizedFetch(url)
+      fetch(url)
         .then((res) => res.blob())
         .then((blob) => {
           const fileURL = URL.createObjectURL(blob);
@@ -372,7 +276,7 @@
         })
         .then((pdf) => {
           pdfDoc = pdf;
-          pageInfo.textContent = ` 1 / ${pdf.numPages}`;
+          pageInfo.textContent = `Page 1 / ${pdf.numPages}`;
           renderAllPages();
           renderThumbnails(pdf).then(() => {
             document.getElementById("loader").style.display = "none";
@@ -387,44 +291,19 @@
         const pages = Array.from(viewer.children);
         for (let i = 0; i < pages.length; i++) {
           const rect = pages[i].getBoundingClientRect();
-          if (rect.top >= 0 && rect.top < window.innerHeight / 2) {
+          if (rect.top >= 0 && rect.bottom <= window.innerHeight) {
             currentPage = i + 1;
             pageInfo.textContent = `Page ${currentPage} / ${pdfDoc.numPages}`;
+
             document
               .querySelectorAll(".thumbnail")
               .forEach((thumb) => thumb.classList.remove("active"));
             const activeThumb =
               document.querySelectorAll(".thumbnail")[currentPage - 1];
             if (activeThumb) activeThumb.classList.add("active");
+
             break;
           }
-        }
-      });
-
-      // Keyboard shortcuts
-      document.addEventListener("keydown", (e) => {
-        switch (e.key) {
-          case "ArrowUp":
-            viewer.scrollBy({ top: -100, behavior: "smooth" });
-            break;
-          case "ArrowDown":
-            viewer.scrollBy({ top: 100, behavior: "smooth" });
-            break;
-          case "+":
-          case "=":
-            scale = Math.min(scale + 0.1, 2);
-            updateZoomDisplay();
-            renderAllPages();
-            break;
-          case "-":
-            scale = Math.max(scale - 0.1, 0.5);
-            updateZoomDisplay();
-            renderAllPages();
-            break;
-          case "f":
-          case "F":
-            document.getElementById("fullscreenBtn").click();
-            break;
         }
       });
     </script>

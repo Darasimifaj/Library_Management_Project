@@ -24,14 +24,13 @@ namespace Library.Models
         public string UserType { get; set; } // "Student", "Lecturer", or "Admin"
         public bool IsActive { get; set; }=true;
         public bool IsAdmin { get; set; } = false;
-        public bool IsEmailVerified { get; set; } = false;
         public bool IsLoggedIn { get; set; } = false;// Only applies to Lecturers who are Admins
 
         public string Department { get; set; }
         public string School { get; set; }
         [Range(1.0, 10.0)]
         public double Rating { get; set; } = 5.0; // Only for students, nullable for lecturers
-        public int? Ticket { get; set; }
+
         public List<BorrowRecord> BorrowRecords { get; set; }
 
         [Required]

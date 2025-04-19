@@ -27,8 +27,8 @@ article {
 }
 input {
   font-size: 15px;
-  width: 100%;
-
+  width: 80%;
+  margin-left: 10px;
   padding: 15px;
   border: 1px solid gray;
   border-radius: 6px;
@@ -38,17 +38,6 @@ main div {
   display: flex;
   justify-content: center;
 }
-/* main h5{
- margin-left: 70px;
-} */
-main input {
-  align-items: center;
-}
-.Serial {
-  flex-direction: column;
-  justify-content: center;
-}
-
 h1 {
   display: none;
   font-weight: 500;
@@ -58,8 +47,7 @@ h1 {
 }
 article {
   button {
-    margin-left: 60px;
-
+    margin: 20px 0px;
     border: none;
     border-radius: 9px;
     font-size: 15px;
@@ -68,10 +56,6 @@ article {
     padding: 15px;
     width: 70%;
   }
-}
-
-.note {
-  margin-top: 40px;
 }
 .Scan {
   margin: 20px 0;

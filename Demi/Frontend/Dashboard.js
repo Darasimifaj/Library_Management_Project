@@ -1,20 +1,3 @@
-function authorizedFetch(url, options = {}) {
-  const token = sessionStorage.getItem("token"); // Your JWT token
-  const apiKey = "your-api-key"; // Replace with your actual API key
-
-  const headers = {
-    ...options.headers,
-    "Content-Type": "application/json",
-    "x-api-key": apiKey,
-    Authorization: `Bearer ${token}`,
-  };
-
-  return fetch(url, {
-    ...options,
-    headers,
-  });
-}
-
 // If not logged in, redirect to login page
 const API_BASE_URL = "https://localhost:44354/api/userlogin";
 if (!sessionStorage.getItem("isLoggedIn")) {
@@ -38,7 +21,7 @@ async function logout() {
   if (!userId) return alert("No active session found");
 
   try {
-    const response = await authorizedFetch(
+    const response = await fetch(
       `${API_BASE_URL}/logout?userId=${encodeURIComponent(userId)}`,
       {
         method: "POST",
@@ -62,7 +45,7 @@ async function checkSession() {
   if (!userId) return alert("No active session");
 
   try {
-    const response = await authorizedFetch(
+    const response = await fetch(
       `${API_BASE_URL}/check-session?userId=${userId}`
     );
     const data = await response.json();
@@ -81,7 +64,7 @@ async function autoLogout() {
   if (!userId) return;
 
   try {
-    const response = await authorizedFetch(
+    const response = await fetch(
       `${API_BASE_URL}/auto-logout?userId=${userId}`,
       {
         method: "POST",
@@ -137,7 +120,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   try {
     // Fetch User details
-    const UserResponse = await authorizedFetch(
+    const UserResponse = await fetch(
       `https://localhost:44354/api/user/${encodeURIComponent(userId)}`
     );
     if (!UserResponse.ok) throw new Error("User not found");
@@ -181,86 +164,4 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ✅ Trigger search on button click
   searchBtn.addEventListener("click", redirectToSearch);
-});
-async function checkType() {
-  const userId = sessionStorage.getItem("userId");
-  const userType = sessionStorage.getItem("userType");
-  if (!userId) return alert("No active session");
-
-  try {
-    const response = await authorizedFetch(
-      `${API_BASE_URL}/checkType?userId=${userId}&usertype=${userType}&isAdmin=true`
-    );
-    const data = await response.json();
-
-    if (!response.ok) {
-      logoutAPIs();
-      alert("Not Admin.");
-      throw new Error(data.message);
-    }
-  } catch (error) {
-    console.error("Check-Type error:", error.message);
-    alert(error.message);
-  }
-}
-document.addEventListener("DOMContentLoaded", async function () {
-  checkType();
-  const userId = sessionStorage.getItem("userId");
-  const url = `https://localhost:44354/api/userlogin/Isverified?userId=${userId}`;
-  const response= await authorizedFetch(url)
-  const data =response.json();
-  console.log(data)
-  if (response.status=== 200){
-    console.log("User is verified")
-  }else{
-    logout();
-    window.location.href="Verifyemail.html"
-  }
-});
-
-// Dark mode toggles
-const moonBtn = document.getElementById("moon");
-const sunBtn = document.getElementById("sun");
-
-if (moonBtn) {
-  moonBtn.onclick = () => {
-    document.body.classList.add("dark-mode");
-    localStorage.setItem("darkMode", "enabled");
-    if (localStorage.getItem("darkMode") == "enabled") {
-      moonBtn.style.backgroundColor = "#61199133";
-      sunBtn.style.backgroundColor = "transparent";
-    } else if (localStorage.getItem("darkMode") == "disabled") {
-      moonBtn.style.backgroundColor = "transparent";
-      sunBtn.style.backgroundColor = "#61199133";
-    }
-  };
-}
-if (localStorage.getItem("darkMode") == "enabled") {
-  moonBtn.style.backgroundColor = "#61199133";
-  sunBtn.style.backgroundColor = "transparent";
-} else if (localStorage.getItem("darkMode") == "disabled") {
-  moonBtn.style.backgroundColor = "transparent";
-  sunBtn.style.backgroundColor = "#61199133";
-}
-
-if (sunBtn) {
-  sunBtn.onclick = () => {
-    document.body.classList.remove("dark-mode");
-    localStorage.setItem("darkMode", "disabled");
-    if (localStorage.getItem("darkMode") == "enabled") {
-      moonBtn.style.backgroundColor = "#61199133";
-      sunBtn.style.backgroundColor = "transparent";
-    } else if (localStorage.getItem("darkMode") == "disabled") {
-      moonBtn.style.backgroundColor = "transparent";
-      sunBtn.style.backgroundColor = "#61199133";
-    }
-  };
-}
-document.getElementById('bi-circle-half').addEventListener('click', function () {
-  const drop = document.querySelector('.drop');
-  if (drop.style.display === 'block') {
-    drop.style.display = 'none';
-  } else {
-    drop.style.display = 'block';
-  }
 });

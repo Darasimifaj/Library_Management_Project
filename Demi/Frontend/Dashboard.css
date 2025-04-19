@@ -1,12 +1,5 @@
-@import url("https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
-:root {
-  --inria: "Inria Sans", sans-serif;
-  --inter: "Inter", sans-serif;
-}
-
 body {
-  font-family: var(--inter);
+  font-family: Arial, sans-serif;
   text-align: center;
   background: white;
 }
@@ -16,7 +9,6 @@ body {
 }
 /* NAV Start */
 nav {
-font-family: var(--inria);
   display: flex;
   justify-content: space-between;
   padding: 10px;
@@ -56,7 +48,7 @@ nav input:focus-within {
   display: flex;
   justify-content: center;
 }
-
+/* NAV Ends */
 
 .header {
   display: flex;
@@ -119,7 +111,6 @@ nav input:focus-within {
   margin-top: -20px;
 }
 .popup {
-  text-align: center;
   display: none;
   position: absolute;
   top: 110px; /* Adjust based on profile pic size */
@@ -150,7 +141,6 @@ nav input:focus-within {
 .profile-container:hover {
   cursor: pointer;
 }
-/* Nav ends */
 
 .green_card {
   background: #66ff66;
@@ -281,87 +271,4 @@ nav input:focus-within {
   .subtitle_class {
     font-size: 22px;
   }
-}
-.theme-toggle,
-.drop,
-.drop-item {
-  list-style: none;
-  margin: 0;
-  
-}
-.drop-item{
-  padding: 10px;
-  color: #611991;
-}
-
-.drop {
-  display: none;
-  margin-left: 5px;
-  border: 1px solid #c0b9c4;
-  /* display: none; */
-  
-  width: 28%;
-  background-color: #f0e8f4;
-  position: absolute;
-  box-sizing: border-box;
-  flex-direction: column;
-  align-items: center;
-}
-
-.theme-toggle:hover .drop {
-  
-  cursor: pointer;
-}
-
-#sun {
-  
-  border-bottom: 1px solid #c0b9c4;
-}
-
-#sun,
-#moon {
-  box-sizing: border-box;
-}
-.logout-cont {
-  display: grid;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 10px;
-}
-
-.theme-container {
-  display: flex;
-  align-items: center;
-  color: #611991;
-}
-
-#bi-circle-half {
-  padding-left: 6px;
-}
-a {
-  text-decoration: none;
-}
-/* Popup Ends */
-/* @media (max-width: 700px) {
-  .nav {
-    display: none;
-  }
-  .Nav2 {
-    display: flex;
-  }
-  .BookMain h1 {
-    font-size: xx-large;
-  }
-} */
-.dark-mode {
-  background-color: #171717;
-  transition: ease-out 0.6s;
-}
-.dark-mode nav {
-  background-color: #171717;
-}
-#bi-circle-half:hover + .drop,
-.drop:hover {
-  display: block;
 }

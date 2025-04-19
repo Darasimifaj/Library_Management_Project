@@ -4,133 +4,114 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
-    <!-- <link rel="stylesheet" href="/Navigation.css" /> -->
+    <link rel="stylesheet" href="/Dont/Navigation.css" />
     <link rel="stylesheet" href="Dashboard.css" />
   </head>
   <body>
     <nav>
-      <div>
-        <img
-          src="/Logo/Frame (1).svg"
-          alt=""
-          onclick="window.location.href='/Home.html'"
-        />
+      <div id="SideH" class="SideH">
+        <ul>
+          <li style="padding: 10px; text-align: end">
+            <button
+              onclick="closeSidebar()"
+              id="close"
+              style="
+                background-color: transparent;
+                border: none;
+                color: white;
+                font-size: large;
+              "
+            >
+              x
+            </button>
+          </li>
+          <li>
+            <a href="Dashboard.html"><div>Dashboard</div></a>
+          </li>
+          <li>
+            <a href="Browse.html"><div>Browse</div></a>
+          </li>
+          <li>
+            <a href="Return.html"><div>Return Book</div></a>
+          </li>
+          <li>
+            <a href="Borrow.html"><div>Borrow Book</div></a>
+          </li>
+        </ul>
+        <div id="close2" style="width: 100%; background-color: #210036d0"></div>
       </div>
+      <div class="nav">
+        <div
+          style="justify-content: center"
+          onclick="window.location.href='Home.html'"
+        >
+          <img src="/Dont/Logo/Frame (1).svg" alt="" />
+          <p style="display: none">OOFO LAS</p>
+        </div>
 
-      <div class="profile-container" onclick="getdetails()">
-        <img
-          src="/MainImages/Profile.svg"
-          alt="Profile Picture"
-          class="profile-pic"
-          onclick="togglePopup(event)"
-        />
-        <div id="popup" class="popup" onclick="event.stopPropagation()">
-          <p style="color: #b695cc; width: 100%" id="Email">
-            fajolou8555@student.babcock.edu.ng
-          </p>
-          <img src="/MainImages/Profile.svg" alt="Profile Picture" />
-          <p style="color: #611991cc" id="Name">Hi, Oluwadaramisi</p>
-          <button onclick="logout()" class="logout-btn">Log Out</button>
+        <div style="justify-content: center">
+          <img
+            src="/Dont/MainImages/Profile.svg"
+            alt=""
+            onclick="togglePopup(event)"
+          />
+          <div id="popup1" class="popup" onclick="event.stopPropagation()">
+            <p style="color: #b695cc; width: 100%" id="Email">
+              fajolou8555@student.babcock.edu.ng
+            </p>
+            <img src="/Dont/MainImages/Profile.svg" alt="Profile Picture" />
+            <p style="color: #611991cc" id="Name">Hi, Oluwadaramisi</p>
+            <button onclick="logout()" class="logout-btn">Log Out</button>
+          </div>
+        </div>
+      </div>
+      <div style="width: 100%; display: flex; justify-content: center">
+        <div class="Nav2">
+          <div class="SideBar">
+            <button id="open" class="Side">
+              <img src="/Dont/MainImages/Hamburger-black.svg" alt="" />
+            </button>
+          </div>
+          <div style="justify-content: center">
+            <img
+              src="/Dont/Logo/Frame (1).svg"
+              alt=""
+              onclick="window.location.href='Home.html'"
+            />
+            <p style="display: none">OOFO LAS</p>
+          </div>
+
+          <div style="justify-content: center" id="popup_Cont">
+            <img
+              src="/Dont/MainImages/Profile.svg"
+              alt=""
+              onclick="togglePopup(event)"
+            />
+            <div id="popup" class="popup">
+              <p style="color: #b695cc; width: 100%" id="Email">
+                fajolou8555@student.babcock.edu.ng
+              </p>
+              <img src="/Dont/MainImages/Profile.svg" alt="Profile Picture" />
+              <p style="color: #611991cc" id="Name">Hi, Oluwadaramisi</p>
+              <button onclick="logout()" class="logout-btn">Log Out</button>
+            </div>
+          </div>
         </div>
       </div>
     </nav>
     <main>
       <article class="SideBar">
-        <div class="sidebar">
-          <div class="div" id="sidebar" onclick="toggleSidebar()">
-            <img class="img" src="Images/menu.svg" />
-          </div>
-          <div class="side-panel-menu" id="side-panel-menu">
-            <div class="menu-item">
-              <img class="img" src="Images/home.svg" />
-              <div class="books" id="q1">Dashboard</div>
-            </div>
-            <div class="div" onclick="window.location.href='Books/Books.html'">
-              <img class="img" src="Images/library.svg" />
-              <div class="text-wrapper" id="q2">Books</div>
-            </div>
-            <div
-              class="menu-item-2"
-              onclick="window.location.href='User/User.html'"
-            >
-              <img class="img" src="Images/user.svg" />
-              <div class="text-wrapper-2" id="q3">Users</div>
-            </div>
-            <div
-              class="menu-item-2"
-              onclick="window.location.href='Records/Records.html'"
-            >
-              <img class="img" src="Images/audio.svg" />
-              <div class="text-wrapper-2" id="q4">Borrowing Records</div>
-            </div>
-            <div
-              class="menu-item-2"
-              onclick="window.location.href='Pending/Pending.html'"
-            >
-              <img class="img" src="Images/notifications.svg" />
-              <div class="text-wrapper-2" id="q5">
-                Pending&nbsp;&nbsp;Borrows/ Returns
-              </div>
-            </div>
-          </div>
-        </div>
+        <ul>
+          <li><a href="">Dashboard</a></li>
+          <li><a href="">Book</a></li>
+          <li><a href="">User</a></li>
+          <li><a href="">Borrowing Records</a></li>
+          <li><a href="">Pending Borrows/Returns</a></li>
+        </ul>
       </article>
-      <article class="MainBar">
-        <article>
-          <header>
-            <h1>Admin Dashboard</h1>
-            <h5>Welcome, Admin Oluwademilade</h5>
-          </header>
-          <section class="stats">
-            <div class="dashboard-number">
-              <div class="container">
-                <div class="card-container">
-                  <div class="number-card">
-                    <div class="frame">
-                      <div class="text-wrapper">Total Books</div>
-                    </div>
-                    <div class="number-detail">
-                      <div class="div" id="TB"></div>
-                    </div>
-                  </div>
-                  <div class="number-card">
-                    <div class="frame">
-                      <div class="text-wrapper">Active Users</div>
-                    </div>
-                    <div class="number-detail">
-                      <div class="div" id="AU"></div>
-                    </div>
-                  </div>
-                  <div class="number-card">
-                    <div class="frame">
-                      <div class="text-wrapper">Borrowed Books</div>
-                    </div>
-                    <div class="number-detail">
-                      <div class="div" id="BB"></div>
-                    </div>
-                  </div>
-                  <div class="number-card">
-                    <div class="frame">
-                      <div class="text-wrapper">Overdue Books</div>
-                    </div>
-                    <div class="number-detail">
-                      <div class="div" id="OB"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-          <details id="Recents" open>
-            <summary>
-              Recent Activity
-              <img src="Images/arrow_drop_down.svg" alt="" />
-            </summary>
-          </details>
-        </article>
-      </article>
+      <article class="MainBar"></article>
     </main>
 
-    <script src="Dashboard.js"></script>
+    <script src="/Dont/AdminPortal/Dashboard.js"></script>
   </body>
 </html>

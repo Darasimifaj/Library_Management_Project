@@ -13,7 +13,6 @@ namespace Library.Data
         public DbSet<User> Users { get; set; }
         public DbSet<ApiKey> ApiKeys { get; set; }
         public DbSet<PendingBorrow> PendingBorrows { get; set; }
-        public DbSet<EmailOtp> EmailOtps { get; set; }
         public DbSet<PendingReturn> PendingReturns { get; set; }
         public DbSet<UserLoginHistory> UserLoginHistories { get; set; }
 
