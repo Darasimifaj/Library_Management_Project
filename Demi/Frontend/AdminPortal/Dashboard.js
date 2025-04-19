@@ -1,7 +1,85 @@
+function authorizedFetch(url, options = {}) {
+  const token = sessionStorage.getItem("token"); // Your JWT token
+  const apiKey = "your-api-key"; // Replace with your actual API key
+
+  const headers = {
+    ...options.headers,
+    "Content-Type": "application/json",
+    "x-api-key": apiKey,
+    Authorization: `Bearer ${token}`,
+  };
+
+  return fetch(url, {
+    ...options,
+    headers,
+  });
+}
+document.addEventListener("DOMContentLoaded", () => {
+  const elemt1 = document.getElementById("q1");
+  const elemt2 = document.getElementById("q2");
+  const elemt3 = document.getElementById("q3");
+  const elemt4 = document.getElementById("q4");
+  const elemt5 = document.getElementById("q5");
+  const sidebarPanel = document.getElementById("side-panel-menu");
+
+  const sidebar = document.getElementById("sidebar");
+  function toggleSidebar() {
+    if (
+      elemt1.style.display === "none" ||
+      elemt2.style.display === "none" ||
+      elemt3.style.display === "none" ||
+      elemt4.style.display === "none" ||
+      elemt5.style.display === "none"
+    ) {
+      elemt1.style.display = "flex";
+      elemt2.style.display = "flex";
+      elemt3.style.display = "flex";
+      elemt4.style.display = "flex";
+      elemt5.style.display = "flex";
+    } else {
+      elemt1.style.display = "none";
+      elemt2.style.display = "none";
+      elemt3.style.display = "none";
+      elemt4.style.display = "none";
+      elemt5.style.display = "none";
+    }
+  }
+  sidebar.addEventListener("click", toggleSidebar);
+});
+const elemt1 = document.getElementById("q1");
+const elemt2 = document.getElementById("q2");
+const elemt3 = document.getElementById("q3");
+const elemt4 = document.getElementById("q4");
+const elemt5 = document.getElementById("q5");
+
+const sidebar = document.getElementById("sidebar");
+function toggleSidebar() {
+  if (
+    elemt1.style.display === "none" ||
+    elemt2.style.display === "none" ||
+    elemt3.style.display === "none" ||
+    elemt4.style.display === "none" ||
+    elemt5.style.display === "none"
+  ) {
+    elemt1.style.display = "flex";
+    elemt2.style.display = "flex";
+    elemt3.style.display = "flex";
+    elemt4.style.display = "flex";
+    elemt5.style.display = "flex";
+  } else {
+    elemt1.style.display = "none";
+    elemt2.style.display = "none";
+    elemt3.style.display = "none";
+    elemt4.style.display = "none";
+    elemt5.style.display = "none";
+  }
+}
+sidebar.addEventListener("click", toggleSidebar);
+
 const API_BASE_URL = "https://localhost:44354/api/userlogin";
 
 // Redirect to login if not logged in
-// if (!sessionStorage.getItem("isLoggedIn")) {
+// if (!sessionStorage.getItem("isLoggedIn")||!userId) {
 //   window.location.href = "StudentLogin.html";
 // }
 
@@ -37,7 +115,13 @@ const API_BASE_URL = "https://localhost:44354/api/userlogin";
 function logoutAPI() {
   sessionStorage.removeItem("userId");
   sessionStorage.removeItem("isLoggedIn");
-  // window.location.href = "StudentLogin.html";
+  window.location.href = "/Admin.html";
+}
+if (
+  !sessionStorage.getItem("isLoggedIn") ||
+  !sessionStorage.getItem("userId")
+) {
+  window.location.href = "/Admin.html";
 }
 
 async function logout() {
@@ -45,7 +129,7 @@ async function logout() {
   if (!userId) return alert("No active session found");
 
   try {
-    const response = await fetch(
+    const response = await authorizedFetch(
       `${API_BASE_URL}/logout?userId=${encodeURIComponent(userId)}`,
       {
         method: "POST",
@@ -67,23 +151,26 @@ function logoutAPIs() {
   sessionStorage.removeItem("userId");
   sessionStorage.removeItem("isLoggedIn");
   alert("Logging Out");
-  // window.location.href = "StudentLogin.html";
+  window.location.href = "/Admin.html";
 }
 // Function to check session status
-async function checkSession() {
+async function checkType() {
   const userId = sessionStorage.getItem("userId");
-  if (!userId) return alert("No active session");
+  
 
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/check-session?userId=${userId}`
+    const response = await authorizedFetch(
+      `${API_BASE_URL}/checkType?userId=${userId}&usertype=Admin&isAdmin=true`
     );
     const data = await response.json();
 
-    if (!response.ok) throw new Error(data.message);
-    alert(`Session active. Expiry: ${data.sessionExpiry}`);
+    if (!response.ok) {
+      logoutAPIs();
+      alert("Not Admin.");
+      throw new Error(data.message);
+    }
   } catch (error) {
-    console.error("Session check error:", error.message);
+    console.error("Check-Type error:", error.message);
     alert(error.message);
   }
 }
@@ -94,7 +181,7 @@ async function autoLogout() {
   if (!userId) return;
 
   try {
-    const response = await fetch(
+    const response = await authorizedFetch(
       `${API_BASE_URL}/auto-logout?userId=${encodeURIComponent(userId)}`,
       {
         method: "POST",
@@ -115,7 +202,7 @@ async function autoLogout() {
 
 // Run autoLogout immediately when the script loads
 autoLogout();
-
+checkType();
 // Periodic check for session expiration
 setInterval(autoLogout, 60000); // Check every 1 minute
 
@@ -137,7 +224,7 @@ function togglePopup(event) {
   const popup = document.getElementById("popup");
   const popup1 = document.getElementById("popup1");
   popup.style.display = popup.style.display === "flex" ? "none" : "flex";
-  popup1.style.display = popup1.style.display === "flex" ? "none" : "flex";
+  // popup1.style.display = popup1.style.display === "flex" ? "none" : "flex";
 }
 
 // Close pop-up when clicking anywhere outside of it
@@ -145,7 +232,6 @@ document.addEventListener("click", function () {
   const popup = document.getElementById("popup");
   popup.style.display = "none";
   const popup1 = document.getElementById("popup1");
-  popup1.style.display = "none";
 });
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -183,7 +269,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   try {
     // Fetch student details
-    const studentResponse = await fetch(
+    const studentResponse = await authorizedFetch(
       `https://localhost:44354/api/user/${encodeURIComponent(userId)}`
     );
     if (!studentResponse.ok) throw new Error("Student not found");
@@ -200,5 +286,49 @@ document.addEventListener("DOMContentLoaded", async function () {
   } catch (error) {
     console.error("Error:", error.message);
     alert(error.message);
+  }
+});
+document.addEventListener("DOMContentLoaded", async function GetRecents() {
+  const url = `https://localhost:44354/api/Books/borrow-history?pageNumber=1&pageSize=5`;
+
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    const history = data.borrowHistory;
+    const TB = document.getElementById("TB");
+    const AU = document.getElementById("AU");
+    const OB = document.getElementById("OB");
+    const BB = document.getElementById("BB");
+    BB.innerText = data.currentlyborrowed || "0";
+    OB.innerText = data.totalOvedue || "0";
+    AU.innerText = data.totalactive || "0";
+    TB.innerText = data.totalBooks || "0";
+    const recents = document.getElementById("Recents");
+    console.log(history);
+    history.forEach((element) => {
+      const book = element.serialNumber;
+      const user = element.userId;
+
+      console.log(user + " " + book); // This will now print 5 different user + book combos
+      const p = document.createElement("p");
+      p.textContent = `User ${element.userId} borrowed ${element.serialNumber}`;
+      recents.appendChild(p);
+    });
+  } catch (error) {
+    console.error(error.message);
+  }
+});
+
+document.addEventListener("DOMContentLoaded", async function () {
+  const userId = sessionStorage.getItem("userId");
+  const url = `https://localhost:44354/api/userlogin/Isverified?userId=${userId}`;
+  const response = await authorizedFetch(url);
+  const data = response.json();
+  console.log(data);
+  if (response.status === 200) {
+    console.log("User is verified");
+  } else {
+    logout();
+    window.location.href = "/Verifyemail.html";
   }
 });

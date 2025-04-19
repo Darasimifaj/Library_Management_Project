@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="Navigation.css" />
   </head>
   <body>
-    <nav>
+    <!-- <nav>
       <div id="SideH" class="SideH">
         <ul>
           <li style="padding: 10px; text-align: end">
@@ -114,21 +114,27 @@
           </div>
         </div>
       </div>
-    </nav>
-
+    </nav> -->
+    <div id="nav-container"></div>
     <main>
       <article>
         <header>Return the book you had previously borrowed</header>
-        <h5>Serial Number</h5>
-        <input
+                <div class="Serial">
+                  <h5>Serial Number</h5>
+
+           <input
           id="serialnumber"
           type="text"
           placeholder="Enter Book Seial Number"
         />
-        <h4>
+        </div>
+       
+        <marquee behavior="scroll" direction=" left" scrollamount="7">
+        <h4 class="note">
           NOTE: The Serial number can be found on the bottom right corner at the
           back
         </h4>
+      </marquee>
         <div>
           <button id="Enter">Enter</button>
         </div>

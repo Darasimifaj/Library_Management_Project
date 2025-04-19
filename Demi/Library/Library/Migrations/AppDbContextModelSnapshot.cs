@@ -148,6 +148,30 @@ namespace Library.Migrations
                     b.ToTable("BorrowRecords");
                 });
 
+            modelBuilder.Entity("Library.Models.EmailOtp", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Expiration")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("OtpCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("EmailOtps");
+                });
+
             modelBuilder.Entity("Library.Models.LateReturn", b =>
                 {
                     b.Property<int>("Id")
@@ -258,6 +282,9 @@ namespace Library.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
+                    b.Property<bool>("IsEmailVerified")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsLoggedIn")
                         .HasColumnType("bit");
 
@@ -277,6 +304,9 @@ namespace Library.Migrations
                     b.Property<string>("School")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("Ticket")
+                        .HasColumnType("int");
 
                     b.Property<string>("UserId")
                         .IsRequired()

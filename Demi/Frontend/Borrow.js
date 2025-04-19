@@ -1,3 +1,20 @@
+function authorizedFetch(url, options = {}) {
+  const token = sessionStorage.getItem("token"); // Your JWT token
+  const apiKey = "your-api-key"; // Replace with your actual API key
+
+  const headers = {
+    ...options.headers,
+    "Content-Type": "application/json",
+    "x-api-key": apiKey,
+    Authorization: `Bearer ${token}`,
+  };
+
+  return fetch(url, {
+    ...options,
+    headers,
+  });
+}
+
 // const search = document.getElementById("search").value.trim();
 // console.log(serialNumber);
 const scannedSerialNumber = localStorage.getItem("scannedSerialNumber");
@@ -7,7 +24,7 @@ if (scannedSerialNumber) {
   document.getElementById("serialnumber").value = scannedSerialNumber;
 } else {
   // If no serial number is found, alert the user or handle it accordingly
-  document.getElementById("serialnumber").value = "No serial number found!";
+  document.getElementById("serialnumber").value = "";
 }
 const ErrorMessage = document.getElementById("error_message");
 function geterror() {
@@ -28,12 +45,12 @@ Enter.addEventListener("click", async () => {
     )}&serialnumber=${serialNumber}&IsReturned=false`;
 
     // Check if the book has been borrowed
-    const borrowResponse = await fetch(borrowHistoryUrl);
+    const borrowResponse = await authorizedFetch(borrowHistoryUrl);
     const borrowData = await borrowResponse.json();
     const isBorrowed = borrowData.totalNotReturned > 0;
     console.log(isBorrowed);
     const bookurl = `https://localhost:44354/api/Books/${serialNumber}`;
-    const response = await fetch(bookurl);
+    const response = await authorizedFetch(bookurl);
     const bookresponse = await response.json();
 
     if (!serialNumber) {
@@ -44,6 +61,7 @@ Enter.addEventListener("click", async () => {
       if (response.status === 200 && bookresponse.quantity > 0) {
         localStorage.setItem("selectedSerial", serialNumber);
         localStorage.setItem("savedLocation", window.location.href);
+        localStorage.setItem("scannedSerialNumber", "");
         window.location.href = "RequestBorrow.html";
       }
       if (bookresponse.quantity <= 0) {

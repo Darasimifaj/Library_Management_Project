@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="Books.css" />
+
+    <!-- <link rel="stylesheet" href="/Navigation.css" /> -->
+    <link rel="stylesheet" href="../Dashboard.css" />
+  </head>
+  <body>
+    <div id="loader">
+      <div class="spinner"></div>
+    </div>
+    <nav>
+      <div>
+        <img
+          src="/Logo/Frame (1).svg"
+          alt=""
+          onclick="window.location.href='Home.html'"
+        />
+      </div>
+
+      <div class="profile-container" onclick="getdetails()">
+        <img
+          src="/MainImages/Profile.svg"
+          alt="Profile Picture"
+          class="profile-pic"
+          onclick="togglePopup(event)"
+        />
+        <div id="popup" class="popup" onclick="event.stopPropagation()">
+          <p style="color: #b695cc; width: 100%" id="Email">
+            fajolou8555@student.babcock.edu.ng
+          </p>
+          <img src="/MainImages/Profile.svg" alt="Profile Picture" />
+          <p style="color: #611991cc" id="Name">Hi, Oluwadaramisi</p>
+          <button onclick="logout()" class="logout-btn">Log Out</button>
+        </div>
+      </div>
+    </nav>
+    <main>
+      <article class="SideBar">
+        <div class="sidebar">
+          <div class="div" id="sidebar" onclick="toggleSidebar()">
+            <img class="img" src="../Images/menu.svg" />
+          </div>
+          <div class="side-panel-menu" id="side-panel-menu">
+            <div class="div" onclick="window.location.href='../Dashboard.html'">
+              <img class="img" src="../Images/home.svg" />
+              <div class="text-wrapper" id="q1">Dashboard</div>
+            </div>
+            <div
+              class="menu-item"
+              onclick="window.location.href='../Books/Books.html'"
+            >
+              <img class="img" src="../Images/library.svg" />
+              <div class="books" id="q2">Books</div>
+            </div>
+            <div
+              class="menu-item-2"
+              onclick="window.location.href='../User/User.html'"
+            >
+              <img class="img" src="../Images/user.svg" />
+              <div class="text-wrapper-2" id="q3">Users</div>
+            </div>
+            <div
+              class="menu-item-2"
+              onclick="window.location.href='../Records/Records.html'"
+            >
+              <img class="img" src="../Images/audio.svg" />
+              <div class="text-wrapper-2" id="q4">Borrowing Records</div>
+            </div>
+            <div
+              class="menu-item-2"
+              onclick="window.location.href='../Pending/Pending.html'"
+            >
+              <img class="img" src="../Images/notifications.svg" />
+              <div class="text-wrapper-2" id="q5">
+                Pending&nbsp;&nbsp;Borrows/ Returns
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+      <article class="MainBar">
+        <article>
+          <header style="text-align: center;">
+            <h1>Book Manager</h1>
+          </header>
+          <section class="stats">
+            <div class="dashboard-number">
+              <div class="container">
+                <div class="card-container">
+                  <div class="number-card"id="n1" onclick="window.location.href='EditBook.html'">
+                    <div class="frame">
+                      <div class="text-wrapper" >Edit Books</div>
+                    </div>
+                  </div>
+                  <div class="number-card" id="n2" onclick="window.location.href='DeleteBook.html'">
+                    <div class="frame">
+                      <div class="text-wrapper">Delete Books</div>
+                    </div>
+                  </div>
+                  <div class="number-card" id="n3" onclick="window.location.href='Import.html'">
+                    <div class="frame">
+                      <div class="text-wrapper">Import/Export</div>
+                    </div>
+                  </div>
+                  <div class="number-card" id="n4">
+                    <div class="frame">
+                      <div class="text-wrapper"id="n4-1">Total Books:</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section>
+            <section class="header">
+              <div class="SearchCont">
+                <div class="MainSearch">
+                  <div class="Search">
+                    <input
+                      type="text"
+                      name=""
+                      id="search"
+                      placeholder="Jesus the Messiah"
+                    />
+                    <button id="search_btn">
+                      <img src="/MainImages/Search.svg" alt="" />
+                    </button>
+                  </div>
+                  <!-- <div class="FandS">
+                  <button><img src="MainImages/Filter.svg" alt="" /></button>
+                  <button><img src="MainImages/Sort.svg" alt="" /></button>
+                </div> -->
+                </div>
+              </div>
+              <div class="filter">
+                <select id="filter">
+                  <option value="">All</option>
+                  <option value="available">Available</option>
+                  <option value="unavailable">Unavailable</option>
+                </select>
+                <select id="sort">
+                  <option value="Id">Sort by ID</option>
+                  <option value="Name">Sort by Name</option>
+                  <option value="Author">Sort by Author</option>
+                  <option value="SerialNumber">Sort by Serial Number</option>
+                  <option value="Quantity">Sort by Quantity</option>
+                </select>
+                <select id="order">
+                  <option value="asc">Ascending</option>
+                  <option value="desc">Descending</option>
+                </select>
+              </div>
+            </section>
+            <section>
+              <div class="Bcontainer">
+                <div style="width: 90%">
+                  <div class="book_list"></div>
+                </div>
+              </div>
+              <div class="pagination" id="pagination">
+                <button id="prevBtn">Previous</button>
+                <span id="pageNumber">Page 1</span>
+                <button id="nextBtn">Next</button>
+              </div>
+            </section>
+            <p
+              id="errormsg"
+              style="display: none; color: #611991; text-align: center"
+            >
+              No Books Found
+            </p>
+          </section>
+        </article>
+      </article>
+    </main>
+    <script src="Books.Js"></script>
+    <script src="../Dashboard.js"></script>
+  </body>
+</html>

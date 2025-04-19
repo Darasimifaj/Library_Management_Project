@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Update Book</title>
+    <link rel="icon" type="image/x-icon" href="/Logo/Frame (1).svg" />
+    <link rel="stylesheet" href="EditBook.css" />
+    <link rel="stylesheet" href="..//Dashboard.css" />
+  </head>
+  <body>
+    <nav>
+      <div>
+        <img
+          src="/Logo/Frame (1).svg"
+          alt=""
+          onclick="window.location.href='Home.html'"
+        />
+      </div>
+
+      <div class="profile-container" onclick="getdetails()">
+        <img
+          src="/MainImages/Profile.svg"
+          alt="Profile Picture"
+          class="profile-pic"
+          onclick="togglePopup(event)"
+        />
+        <div id="popup" class="popup" onclick="event.stopPropagation()">
+          <p style="color: #b695cc; width: 100%" id="Email">
+            fajolou8555@student.babcock.edu.ng
+          </p>
+          <img src="/MainImages/Profile.svg" alt="Profile Picture" />
+          <p style="color: #611991cc" id="Name">Hi, Oluwadaramisi</p>
+          <button onclick="logout()" class="logout-btn">Log Out</button>
+        </div>
+      </div>
+    </nav>
+    <main>
+      <article class="SideBar">
+        <div class="sidebar">
+          <div class="div" id="sidebar" onclick="toggleSidebar()">
+            <img class="img" src="../Images/menu.svg" />
+          </div>
+          <div class="side-panel-menu" id="side-panel-menu">
+            <div class="div" onclick="window.location.href='../Dashboard.html'">
+              <img class="img" src="../Images/home.svg" />
+              <div class="text-wrapper" id="q1">Dashboard</div>
+            </div>
+            <div
+              class="menu-item"
+              onclick="window.location.href='../Books/Books.html'"
+            >
+              <img class="img" src="../Images/library.svg" />
+              <div class="books" id="q2">Books</div>
+            </div>
+            <div
+              class="menu-item-2"
+              onclick="window.location.href='../User/User.html'"
+            >
+              <img class="img" src="../Images/user.svg" />
+              <div class="text-wrapper-2" id="q3">Users</div>
+            </div>
+            <div
+              class="menu-item-2"
+              onclick="window.location.href='../Records/Records.html'"
+            >
+              <img class="img" src="../Images/audio.svg" />
+              <div class="text-wrapper-2" id="q4">Borrowing Records</div>
+            </div>
+            <div
+              class="menu-item-2"
+              onclick="window.location.href='../Pending/Pending.html'"
+            >
+              <img class="img" src="../Images/notifications.svg" />
+              <div class="text-wrapper-2" id="q5">
+                Pending&nbsp;&nbsp;Borrows/ Returns
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+      <article class="MainBar">
+        <div class="Tcontainer">
+          <h2>Edit Book Details</h2>
+          <a href="Import.html">Import/Export Books</a>
+          <!-- <label for="serialNumber"></label> -->
+          <p>Serial Number:</p>
+          <input
+            type="text"
+            id="serialNumber"
+            placeholder="Enter Serial Number"
+          />
+
+          <!-- <label for="field"></label> -->
+          <p>Field to Update:</p>
+          <select id="field">
+            <option value="/name">Name</option>
+            <option value="/author">Author</option>
+            <option value="/year">Year</option>
+            <option value="/description">Description</option>
+            <option value="/quantity">Quantity</option>
+          </select>
+          <!-- 
+      <label for="newValue"></label> -->
+          <p>New Value:</p>
+          <input type="text" id="newValue" placeholder="Enter New Value" />
+
+          <button onclick="updateBook()">Update Book</button>
+
+          <p id="message"></p>
+        </div>
+      </article>
+    </main>
+    <script src="../Dashboard.js"></script>
+    <script src="EditBook.js"></script>
+  </body>
+</html>

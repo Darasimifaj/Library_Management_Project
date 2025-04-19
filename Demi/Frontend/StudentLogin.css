@@ -56,13 +56,13 @@ nav ul:hover {
   cursor: pointer;
 }
 .Home a {
-  color: #003898;
+  color: #000000e8;
 }
 .Admin a {
   color: #000000e8;
 }
 .Login a {
-  color: #611991;
+  color: #000000e8;
 }
 .login-btn:hover {
   cursor: pointer;
@@ -87,7 +87,7 @@ main {
   margin: 100px 0;
 }
 .RealDetails {
-  width: 50%;
+  width: 60%;
 }
 .LoginHeader {
   font-weight: normal;
@@ -128,14 +128,14 @@ main {
     color: #14212e;
     margin-bottom: 10px;
   }
-  input {
+  input,select {
     width: -webkit-fill-available;
     /* color: #A8A8A8; */
     padding: 10px;
     border: 1px solid #dadcdd;
     border-radius: 5px;
   }
-  input:focus {
+  input:focus,select:focus {
     outline: none;
 
     box-shadow: 0px 0px 5px rgba(26, 25, 26, 0.5); /* Optional glow effect */
@@ -144,7 +144,7 @@ main {
 .DetTemp:focus-within {
   box-shadow: 0px 0px 5px rgba(26, 25, 26, 0.5); /* Optional glow effect */
 }
-.login-btn {
+.login-btn,.register-btn,#send-otp,#validate-otp{
   font-size: 18px;
   font-weight: 400;
   width: 100%;
@@ -257,4 +257,8 @@ main {
 /* END */
 .Logo h3 {
   margin: 20px 0;
+}
+
+.Side{
+  cursor: pointer;
 }

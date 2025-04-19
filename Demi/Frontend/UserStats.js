@@ -1,3 +1,20 @@
+function authorizedFetch(url, options = {}) {
+  const token = sessionStorage.getItem("token"); // Your JWT token
+  const apiKey = "your-api-key"; // Replace with your actual API key
+
+  const headers = {
+    ...options.headers,
+    "Content-Type": "application/json",
+    "x-api-key": apiKey,
+    Authorization: `Bearer ${token}`,
+  };
+
+  return fetch(url, {
+    ...options,
+    headers,
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const searchBtn = document.getElementById("search_btn");
   const prevBtn = document.getElementById("prev_page");
@@ -5,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const pageInfo = document.getElementById("page_info");
 
   let currentPage = 1;
-  const pageSize = 1; // Set number of records per page
+  const pageSize = 10; // Set number of records per page
 
   fetchBorrowHistory();
 
@@ -21,16 +38,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const borrowUrl = `https://localhost:44354/api/Books/borrow-history?UserId=${encodeURI(
       userId
-    )}&serialnumber=${serialNumber}&overdue=${overdue}&IsReturned=${isReturned}&startDate=${startDate}&endDate=${endDate}&Department=${department}&School=${school}&pageNumber=${page}&pageSize=${pageSize}`;
+    )}&serialnumber=${serialNumber}&overdue=${overdue}&IsReturned=${isReturned}&startDate=${startDate}&endDate=${endDate}&Department=${department}&School=${school}&pageNumber=${page}&pageSize=${pageSize}&IsOnline=false`;
 
     try {
-      const userResponse = await fetch(
+      const userResponse = await authorizedFetch(
         `https://localhost:44354/api/user/${encodeURIComponent(userId)}`
       );
       const User = await userResponse.json();
       document.querySelector(".rCategory").innerHTML = User.rCategory;
 
-      const borrowResponse = await fetch(borrowUrl);
+      const borrowResponse = await authorizedFetch(borrowUrl);
       const data = await borrowResponse.json();
 
       // console.log(borrowUrl);
@@ -81,6 +98,11 @@ document.addEventListener("DOMContentLoaded", () => {
               : "Pending"
           }</button></td>
         `;
+        document.getElementById("loader").style.display = "none";
+        if (!row.innerHTML) {
+          document.getElementById("pagination").style.display = "none";
+          document.getElementById("errormsg").style.display = "block";
+        }
         table.appendChild(row);
       });
     } catch (error) {
