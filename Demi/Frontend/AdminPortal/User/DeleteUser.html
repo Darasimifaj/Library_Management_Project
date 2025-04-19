@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Delete User</title>
+    <link rel="icon" type="image/x-icon" href="/Logo/Frame (1).svg" />
+    <!-- <link rel="stylesheet" href="EditBook.css" /> -->
+    <link rel="stylesheet" href="..//Dashboard.css" />
+    <style>
+      /* body {
+        font-family: "Segoe UI", sans-serif;
+        background-color: #f4f6f8;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      } */
+      .MainBar {
+        display: flex;
+        justify-content: center;
+      }
+      a{
+        text-decoration: none;
+        color: #333;
+      }
+      .MainBar a:hover {
+        text-decoration: underline;
+      }
+      .container {
+        margin-top: 50px;
+        background-color: #fff;
+        padding: 30px 40px;
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        max-width: 400px;
+        width: 100%;
+      }
+
+      h2 {
+        color: #333;
+        margin-bottom: 20px;
+      }
+
+      input[type="text"] {
+        padding: 10px;
+        width: 100%;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        margin-bottom: 20px;
+      }
+
+      button {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        font-size: 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      button:hover {
+        background-color: #b02a37;
+      }
+
+      #message {
+        margin-top: 20px;
+        font-size: 14px;
+      }
+
+      .error {
+        color: red;
+      }
+
+      .success {
+        color: green;
+      }
+
+      /* Modal Styles */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.5);
+      }
+
+      .modal-content {
+        background-color: white;
+        margin: 15% auto;
+        padding: 30px;
+        border-radius: 10px;
+        width: 90%;
+        max-width: 400px;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      .modal-buttons {
+        margin-top: 20px;
+      }
+
+      .modal-buttons button {
+        margin: 0 10px;
+        padding: 10px 18px;
+        font-size: 14px;
+        border-radius: 6px;
+      }
+
+      #confirmBtn:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+      }
+
+      #cancelBtn {
+        background-color: #6c757d;
+      }
+
+      #cancelBtn:hover {
+        background-color: #5a6268;
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <div>
+        <img
+          src="/Logo/Frame (1).svg"
+          alt=""
+          onclick="window.location.href='Home.html'"
+        />
+      </div>
+
+      <div class="profile-container" onclick="getdetails()">
+        <img
+          src="/MainImages/Profile.svg"
+          alt="Profile Picture"
+          class="profile-pic"
+          onclick="togglePopup(event)"
+        />
+        <div id="popup" class="popup" onclick="event.stopPropagation()">
+          <p style="color: #b695cc; width: 100%" id="Email">
+            fajolou8555@student.babcock.edu.ng
+          </p>
+          <img src="/MainImages/Profile.svg" alt="Profile Picture" />
+          <p style="color: #611991cc" id="Name">Hi, Oluwadaramisi</p>
+          <button onclick="logout()" class="logout-btn">Log Out</button>
+        </div>
+      </div>
+    </nav>
+    <main>
+      <article class="SideBar">
+        <div class="sidebar">
+          <div class="div" id="sidebar" onclick="toggleSidebar()">
+            <img class="img" src="../Images/menu.svg" />
+          </div>
+          <div class="side-panel-menu" id="side-panel-menu">
+            <div class="div" onclick="window.location.href='../Dashboard.html'">
+              <img class="img" src="../Images/home.svg" />
+              <div class="text-wrapper" id="q1">Dashboard</div>
+            </div>
+            <div
+              class="menu-item-2"
+              onclick="window.location.href='../Books/Books.html'"
+            >
+              <img class="img" src="../Images/library.svg" />
+              <div class="text-wrapper-2" id="q2">Books</div>
+            </div>
+            <div
+              class="menu-item"
+              onclick="window.location.href='../User/User.html'"
+            >
+              <img class="img" src="../Images/user.svg" />
+              <div class="books" id="q3">Users</div>
+            </div>
+            <div
+              class="menu-item-2"
+              onclick="window.location.href='../Records/Records.html'"
+            >
+              <img class="img" src="../Images/audio.svg" />
+              <div class="text-wrapper-2" id="q4">Borrowing Records</div>
+            </div>
+            <div
+              class="menu-item-2"
+              onclick="window.location.href='../Pending/Pending.html'"
+            >
+              <img class="img" src="../Images/notifications.svg" />
+              <div class="text-wrapper-2" id="q5">
+                Pending&nbsp;&nbsp;Borrows/ Returns
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+      <article class="MainBar">
+        <div class="container">
+          <h2>🗑️ Delete User</h2>
+          <input
+            type="text"
+            id="serialNumber"
+            placeholder="Enter User ID"
+            required
+          />
+          <button onclick="showConfirmation()">Delete</button>
+          <div id="message"></div>
+        </div>
+
+        <!-- Confirmation Modal -->
+        <div id="confirmationModal" class="modal">
+          <div class="modal-content">
+            <p id="confirmText">Are you sure you want to delete this user?</p>
+            <div class="modal-buttons">
+              <button id="confirmBtn" onclick="deleteBook()" disabled>
+                Yes
+              </button>
+              <button id="cancelBtn" onclick="closeModal()">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </article>
+    </main>
+    <script src="../Dashboard.js"></script>
+    <script>
+      let serialToDelete = "";
+
+      function showConfirmation() {
+        const serialNumber = document
+          .getElementById("serialNumber")
+          .value.trim();
+        const message = document.getElementById("message");
+
+        if (!serialNumber) {
+          message.textContent = "Please enter a User ID.";
+          message.className = "error";
+          return;
+        }
+
+        serialToDelete = serialNumber;
+        document.getElementById(
+          "confirmText"
+        ).textContent = `Are you sure you want to delete "${serialNumber}"?`;
+
+        // Show modal and disable button for 3 seconds
+        document.getElementById("confirmationModal").style.display = "block";
+        const confirmBtn = document.getElementById("confirmBtn");
+        confirmBtn.disabled = true;
+
+        setTimeout(() => {
+          confirmBtn.disabled = false;
+        }, 3000);
+      }
+
+      function closeModal() {
+        document.getElementById("confirmationModal").style.display = "none";
+      }
+
+      async function deleteBook() {
+        const message = document.getElementById("message");
+        closeModal();
+
+        try {
+          message.textContent = "Deleting...";
+          message.className = "";
+
+          const response = await fetch(
+            `https://localhost:44354/api/user/delete?userId=${encodeURIComponent(
+              serialToDelete
+            )}`,
+            {
+              method: "DELETE",
+            }
+          );
+
+          if (response.status === 204) {
+            message.textContent = `✅ User with User ID "${serialToDelete}" deleted successfully.`;
+            message.className = "success";
+            document.getElementById("serialNumber").value = "";
+          } else {
+            const result = await response.json();
+            message.textContent = `❌ ${
+              result.message || "Error occurred while deleting."
+            }`;
+            message.className = "error";
+          }
+        } catch (error) {
+          message.textContent = `❌ Error: ${error.message}`;
+          message.className = "error";
+        }
+      }
+    </script>
+  </body>
+</html>

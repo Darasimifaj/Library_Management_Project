@@ -10,144 +10,6 @@ body {
 button:hover {
   cursor: pointer;
 }
-nav {
-  width: auto;
-  display: flex;
-  justify-content: space-between;
-  padding: 20px;
-  color: #8147a7;
-  align-items: center;
-  div {
-    display: flex;
-  }
-}
-
-.Navi {
-  height: 50px;
-  width: 60%;
-  display: flex;
-  justify-content: center;
-}
-.Navi ul {
-  font-weight: 800;
-  font-size: larger;
-
-  width: 100%;
-  align-items: center;
-  margin: 0px;
-  padding: 0px;
-  list-style: none;
-  display: flex;
-  justify-content: space-between;
-}
-nav a {
-  text-decoration: none;
-  color: #8147a7;
-}
-
-/* NAV Ends */
-/* Nav2 Starts*/
-.Side {
-  display: flex;
-  background-color: transparent;
-  border: 0px;
-  justify-content: center;
-  width: 50px;
-  img {
-    width: 50px;
-  }
-}
-.SideBar {
-  display: flex;
-  flex-direction: column;
-  button {
-    margin: 0px;
-    padding: 0;
-    img {
-      width: 100%;
-    }
-  }
-}
-.SideH ul {
-  width: 100%;
-  /* padding: 30px 50px; */
-  margin: 0px;
-  background-color: #8147a7;
-  list-style: none;
-  padding: 0px;
-
-  li {
-    /* padding: 40px; */
-    border-radius: 20px;
-  }
-  a {
-    color: white;
-    text-decoration: none;
-  }
-}
-.SideH {
-  width: 100%;
-  color: white;
-  height: 100vh;
-  display: none;
-  position: fixed;
-  z-index: 50;
-}
-.SideH div:hover {
-  cursor: pointer;
-  background-color: #25023d9a;
-}
-.SideH div {
-  padding: 30px;
-
-  transition-duration: 10ms;
-  transition: background-color 0.2s;
-}
-.Nav2 {
-  width: 90%;
-  margin-top: 20px;
-  justify-content: space-between;
-  img {
-    display: flex;
-    justify-content: center;
-    width: 50px;
-  }
-  display: none;
-}
-/* Nav2 Ends */
-/* Popup STarts */
-.popup {
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  position: absolute;
-  top: 110px; /* Adjust based on profile pic size */
-  right: 10px;
-  background-color: #f0e8f4;
-  border-radius: 20px;
-  padding: 40px;
-  min-width: 100px;
-
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
-  img {
-    width: 40%;
-  }
-  button {
-    width: 80%;
-    font-weight: 600;
-    color: #a075bd;
-    padding: 15px;
-    background-color: #f0e8f4;
-    border: 2px solid #a075bd;
-    border-radius: 50px;
-  }
-  button:hover {
-    cursor: pointer;
-  }
-}
-
-/* Popup Ends */
 
 main {
   margin-top: 50px;
@@ -218,7 +80,8 @@ img:hover {
 .borrow {
   background-color: #611991;
 }
-.borrowed {
+.borrowed,
+.read {
   background-color: #611991b2;
 }
 .unavailable {

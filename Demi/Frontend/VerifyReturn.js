@@ -35,11 +35,27 @@ const continuebutton = document.getElementById("Continue");
 //     console.error("Eroor fetching Book");
 //   }
 // });
+function authorizedFetch(url, options = {}) {
+  const token = sessionStorage.getItem("token"); // Your JWT token
+  const apiKey = "your-api-key"; // Replace with your actual API key
+
+  const headers = {
+    ...options.headers,
+    "Content-Type": "application/json",
+    "x-api-key": apiKey,
+    Authorization: `Bearer ${token}`,
+  };
+
+  return fetch(url, {
+    ...options,
+    headers,
+  });
+}
 
 continuebutton.addEventListener("click", async () => {
   try {
     console.log(returncode);
-    const response = await fetch(returnUrl, {
+    const response = await authorizedFetch(returnUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

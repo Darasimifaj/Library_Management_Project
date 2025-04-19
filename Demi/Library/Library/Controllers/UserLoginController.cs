@@ -33,7 +33,7 @@ namespace Library.Controllers
         public async Task<IActionResult> StudentLogin([FromQuery] LoginUserDto dto)
         {
             _logger.LogInformation("Attempting student login for UserId: {UserId}", dto.UserId);
-            return await AuthenticateUser(dto, "Student", true);
+            return await AuthenticateUser(dto, "Student", false);
         }
 
         // ✅ Lecturer Login
@@ -41,7 +41,7 @@ namespace Library.Controllers
         public async Task<IActionResult> LecturerLogin([FromQuery] LoginUserDto dto)
         {
             _logger.LogInformation("Attempting lecturer login for UserId: {UserId}", dto.UserId);
-            return await AuthenticateUser(dto, "Lecturer", true);
+            return await AuthenticateUser(dto, "Lecturer", false);
         }
 
         // ✅ Admin Login
@@ -67,7 +67,7 @@ namespace Library.Controllers
             if (user == null)
             {
                 _logger.LogWarning("Invalid {UserType} credentials for UserId: {UserId}.", userType, dto.UserId);
-                return Unauthorized($"Invalid {userType} credentials.");
+                return Unauthorized(new { message = $"Invalid {userType} credentials." });
             }
 
             // ❌ Check if the user is deactivated
@@ -105,7 +105,7 @@ namespace Library.Controllers
             _logger.LogInformation("{UserType} login successful for UserId: {UserId} at {LoginTime}. Session will expire at {ExpiryTime}.", userType, dto.UserId, DateTime.UtcNow, expiryTime);
 
             return Ok(new
-            {
+            {   email=user.Email, 
                 message = $"{userType} login successful",
                 sessionExpiry = expiryTime,
                 token = token
@@ -152,6 +152,39 @@ namespace Library.Controllers
 
             return Ok(new { message = "Logout successful" });
         }
+        [HttpGet("checkType")]
+        public IActionResult CheckType([FromQuery] string userId, string usertype,bool?isAdmin)
+        {
+            _logger.LogInformation("Checking Type for UserId: {UserId}.", userId);
+
+            var user = _context.Users
+                .FirstOrDefault(u => (u.UserType == usertype||u.IsAdmin==isAdmin) && u.UserId == userId);  // Fetching a single record
+
+            if (user == null)
+            {
+                _logger.LogWarning("No login record found for UserId: {UserId}.", userId);
+                return NotFound("No user found");
+            }
+
+            return Ok(new { message = $"User: {userId} is of type {usertype}" });
+        }
+        [HttpGet("Isverified")]
+        public IActionResult CheckVerification([FromQuery] string userId)
+        {
+            _logger.LogInformation("Checking Type for UserId: {UserId}.", userId);
+
+            var user = _context.Users
+                .FirstOrDefault(u => u.UserId == userId && u.IsEmailVerified==true);  // Fetching a single record
+
+            if (user == null)
+            {
+                _logger.LogWarning("User is not verified: {UserId}.", userId);
+                return NotFound("No verified user found");
+            }
+
+            return Ok(new { message = $"User: {userId} is verifed" });
+        }
+
 
         [HttpGet("check-session")]
         [Authorize]

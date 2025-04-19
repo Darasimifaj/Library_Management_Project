@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <!-- <link rel="stylesheet" href="Books.css" /> -->
+
+    <link rel="stylesheet" href="User.css" />
+    <link rel="stylesheet" href="../Dashboard.css" />
+  </head>
+  <body>
+    <!-- <div id="loader">
+      <div class="spinner"></div>
+    </div> -->
+    <nav>
+      <div>
+        <img
+          src="/Logo/Frame (1).svg"
+          alt=""
+          onclick="window.location.href='Home.html'"
+        />
+      </div>
+
+      <div class="profile-container" onclick="getdetails()">
+        <img
+          src="/MainImages/Profile.svg"
+          alt="Profile Picture"
+          class="profile-pic"
+          onclick="togglePopup(event)"
+        />
+        <div id="popup" class="popup" onclick="event.stopPropagation()">
+          <p style="color: #b695cc; width: 100%" id="Email">
+            fajolou8555@student.babcock.edu.ng
+          </p>
+          <img src="/MainImages/Profile.svg" alt="Profile Picture" />
+          <p style="color: #611991cc" id="Name">Hi, Oluwadaramisi</p>
+          <button onclick="logout()" class="logout-btn">Log Out</button>
+        </div>
+      </div>
+    </nav>
+    <main>
+      <article class="SideBar">
+        <div class="sidebar">
+          <div class="div" id="sidebar" onclick="toggleSidebar()">
+            <img class="img" src="../Images/menu.svg" />
+          </div>
+          <div class="side-panel-menu" id="side-panel-menu">
+            <div class="div" onclick="window.location.href='../Dashboard.html'">
+              <img class="img" src="../Images/home.svg" />
+              <div class="text-wrapper" id="q1">Dashboard</div>
+            </div>
+            <div
+              class="menu-item-2"
+              onclick="window.location.href='../Books/Books.html'"
+            >
+              <img class="img" src="../Images/library.svg" />
+              <div class="text-wrapper-2" id="q2">Books</div>
+            </div>
+            <div
+              class="menu-item"
+              onclick="window.location.href='../User/User.html'"
+            >
+              <img class="img" src="../Images/user.svg" />
+              <div class="books" id="q3">Users</div>
+            </div>
+            <div
+              class="menu-item-2"
+              onclick="window.location.href='../Records/Records.html'"
+            >
+              <img class="img" src="../Images/audio.svg" />
+              <div class="text-wrapper-2" id="q4">Borrowing Records</div>
+            </div>
+            <div
+              class="menu-item-2"
+              onclick="window.location.href='../Pending/Pending.html'"
+            >
+              <img class="img" src="../Images/notifications.svg" />
+              <div class="text-wrapper-2" id="q5">
+                Pending&nbsp;&nbsp;Borrows/ Returns
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+      <article class="MainBar">
+        <article>
+          <header>
+            <h1>User</h1>
+          </header>
+          <section class="stats">
+            <div class="dashboard-number">
+              <div class="container">
+                <div class="card-container">
+                  <div
+                    class="number-card"
+                    id="n1"
+                    onclick="window.location.href='EditUser.html'"
+                  >
+                    <div class="frame">
+                      <div class="text-wrapper">Edit User</div>
+                    </div>
+                  </div>
+                  <!-- <div
+                    class="number-card"
+                    id="n2"
+                    onclick="window.location.href='DeleteBook.html'"
+                  >
+                    <div class="frame">
+                      <div class="text-wrapper">Delete Books</div>
+                    </div>
+                  </div> -->
+                  <div
+                    class="number-card"
+                    id="n2"
+                    onclick="window.location.href='Import.html'"
+                  >
+                    <div class="frame">
+                      <div class="text-wrapper">Import/Export</div>
+                    </div>
+                  </div>
+                  <div class="number-card" id="n3">
+                    <div class="frame">
+                      <div class="text-wrapper">Online Users</div>
+                    </div>
+                    <div class="number-detail">
+                      <div class="div" id="OU"></div>
+                    </div>
+                  </div>
+                  <div class="number-card" id="n4">
+                    <div class="frame">
+                      <div class="text-wrapper">Total Users</div>
+                    </div>
+                    <div class="number-detail">
+                      <div class="div" id="TU"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="container">
+                  <div class="card-container">
+                    <div class="number-card">
+                      <div class="frame">
+                        <div class="text-wrapper">Total Students</div>
+                      </div>
+                      <div class="number-detail">
+                        <div class="div" id="TS"></div>
+                      </div>
+                    </div>
+                    <div class="number-card">
+                      <div class="frame">
+                        <div class="text-wrapper">Total Lecturers</div>
+                      </div>
+                      <div class="number-detail">
+                        <div class="div" id="TL"></div>
+                      </div>
+                    </div>
+                    <div class="number-card">
+                      <div class="frame">
+                        <div class="text-wrapper">Total Admins</div>
+                      </div>
+                      <div class="number-detail">
+                        <div class="div" id="TA"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          <article>
+            <h1>Book History</h1>
+            <p>Borrowed Record</p>
+          </article>
+          <div class="filters">
+            <input type="text" id="userId" placeholder="User Id" />
+            <input type="text" id="firstName" placeholder="First Name" />
+            <input type="text" id="lastName" placeholder="Last Name" />
+            <input type="text" id="email" placeholder="Email" />
+            <input type="text" id="Rating" placeholder="Rating" />
+            <select id="userType">
+              <option value="">User Type</option>
+              <option value="Student">Student</option>
+              <option value="Lecturer">Lecturer</option>
+              <option value="Admin">Admin</option>
+            </select>
+            <select id="department">
+              <option value="">Department</option>
+              <option value="Computer Science">Computer Science</option>
+              <option value="Software Engineering">Software Engineering</option>
+            </select>
+            <select id="school">
+              <option value="">School</option>
+              <option value="School of Computing">School of Computing</option>
+              <option value="College of Health and Medical Sciences">
+                College of Health and Medical Sciences
+              </option>
+            </select>
+            <select id="isActive">
+              <option value="">IsActive</option>
+              <option value="true">True</option>
+              <option value="false">False</option>
+            </select>
+            <select id="isAdmin">
+              <option value="">IsAdmin</option>
+              <option value="true">True</option>
+              <option value="false">False</option>
+            </select>
+            <select id="IsLoggedIn">
+              <option value="">IsOnline</option>
+              <option value="true">True</option>
+              <option value="false">False</option>
+            </select>
+
+            <!-- <input type="date" id="startDate" />
+            <input type="date" id="endDate" /> -->
+            <button id="search_btn">Search</button>
+          </div>
+          <section style="display: flex; justify-content: center">
+            <section style="overflow: auto" class="all_section">
+              <table class="active_table">
+                <tr class="active_title">
+                  <th>UserId</th>
+                  <th>First name</th>
+                  <th>Last Name</th>
+                  <th>User Type</th>
+                  <th>Department</th>
+                  <th>Rating</th>
+                  <th>IsAdmin</th>
+                  <th>IsActive</th>
+                </tr>
+
+                <!-- <tr class="active_data1">
+                  <td>Book 1</td>
+                  <td>3/3/2025 9:34:08 AM</td>
+                  <td>3/5/2025 9:34:08 AM</td>
+                  <td>3/3/2025 9:34:31 AM</td>
+                  <td><button class="returned">Returned</button></td>
+                </tr>
+      
+                <tr class="active_data2">
+                  <td>Book 1</td>
+                  <td>3/3/2025 9:34:08 AM</td>
+                  <td>3/5/2025 9:34:08 AM</td>
+                  <td>3/3/2025 9:34:31 AM</td>
+                  <td><button class="due">Due</button></td>
+                </tr>
+      
+                <tr class="active_data3">
+                  <td>Book 1</td>
+                  <td>3/3/2025 9:34:08 AM</td>
+                  <td>3/3/2025 9:34:08 AM</td>
+                  <td>3/3/2025 9:34:08 AM</td>
+                  <td><button class="pending">Pending</button></td>
+                </tr>
+      
+                <tr class="active_data4">
+                  <td>Book 1</td>
+                  <td>3/3/2025 9:34:08 AM</td>
+                  <td>3/3/2025 9:34:08 AM</td>
+                  <td>3/3/2025 9:34:08 AM</td>
+                  <td><button class="late">Late</button></td>
+                </tr> -->
+              </table>
+            </section>
+          </section>
+          <div class="pagination">
+            <button id="prev_page" disabled>Previous</button>
+            <span id="page_info">Page 1 of 1</span>
+            <button id="next_page" disabled>Next</button>
+          </div>
+          <p
+            id="errormsg"
+            style="display: none; color: #611991; text-align: center"
+          >
+            No Record Found
+          </p>
+        </article>
+      </article>
+    </main>
+    <script src="User.Js"></script>
+    <script src="../Dashboard.js"></script>
+  </body>
+</html>

@@ -1,5 +1,22 @@
+function authorizedFetch(url, options = {}) {
+  const token = sessionStorage.getItem("token"); // Your JWT token
+  const apiKey = "your-api-key"; // Replace with your actual API key
+
+  const headers = {
+    ...options.headers,
+    "Content-Type": "application/json",
+    "x-api-key": apiKey,
+    Authorization: `Bearer ${token}`,
+  };
+
+  return fetch(url, {
+    ...options,
+    headers,
+  });
+}
+
 let currentPage = 1; // Initialize the current page
-const pageSize = 10;
+const pageSize = 5;
 document.addEventListener("DOMContentLoaded", async function () {
   const booksContainer = document.querySelector(".book_list");
   const searchInput = document.getElementById("search");
@@ -31,7 +48,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     )}&sort=${sort}&order=${order}&filter=${filter}&pageNumber=${currentPage}&pageSize=${pageSize}`;
 
     try {
-      const response = await fetch(booksApiUrl);
+      const response = await authorizedFetch(booksApiUrl);
       const book = await response.json();
       const books = book.data;
       const totalPages = book.totalPages; // Assuming the response includes totalPages
@@ -43,17 +60,28 @@ document.addEventListener("DOMContentLoaded", async function () {
       for (const book of books) {
         const borrowHistoryUrl = `https://localhost:44354/api/Books/borrow-history?UserId=${encodeURIComponent(
           userId
-        )}&serialnumber=${book.serialNumber}&IsReturned=false`;
+        )}&serialnumber=${book.serialNumber}&IsReturned=false&IsOnline=false`;
         const imageUrl = `https://localhost:44354/api/books/image/${book.serialNumber}`;
-        const borrowResponse = await fetch(borrowHistoryUrl);
+        const borrowResponse = await authorizedFetch(borrowHistoryUrl);
         const borrowData = await borrowResponse.json();
-        const isBorrowed = borrowData.totalNotReturned > 0;
 
+        const isBorrowed = borrowData.totalNotReturned > 0;
+        
+        const imgresponse = await authorizedFetch(imageUrl);
+        const blob = await imgresponse.blob();
+        let objectURL = null;
+        if (blob.type.startsWith("image/")) {
+          objectURL = URL.createObjectURL(blob);
+        }
+
+        
         const bookElement = document.createElement("div");
         bookElement.classList.add("book");
         bookElement.setAttribute("data-serial", book.serialNumber);
         bookElement.innerHTML = `
-          <img src="${imageUrl}" alt="${book.name}" />
+          <img src="${objectURL || "BookImages/BOOK1.png"}" alt="${
+          book.name
+        }" />
           <h3>${truncateText(book.name, 4)}</h3>
           <p>${truncateText(book.author, 4)}</p>
           <div class="book_details">
@@ -77,7 +105,11 @@ document.addEventListener("DOMContentLoaded", async function () {
             }" class="details">View <br />Details</a>
           </div>
         `;
-
+        document.getElementById("loader").style.display = "none";
+        if (booksContainer.innerHTML == null) {
+          document.getElementById("pagination").style.display = "none";
+          document.getElementById("errormsg").style.display = "block";
+        }
         booksContainer.appendChild(bookElement);
         document.querySelectorAll(".borrow").forEach((button) => {
           button.addEventListener("click", (event) => {
@@ -118,24 +150,33 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // Disable/Enable Next button
     nextBtn.disabled = currentPage === totalPages;
+    if (currentPage === 1) {
+      prevBtn.style.backgroundColor = "#611991b2";
+    } else {
+      prevBtn.style.backgroundColor = "#611991";
+    }
+    if (currentPage === totalPages) {
+      nextBtn.style.backgroundColor = "#611991b2";
+    } else {
+      nextBtn.style.backgroundColor = "#611991";
+    }
   }
 
   // Function to change page
   function changePage(direction) {
-    const totalPages = parseInt(
-      document.getElementById("pageNumber").textContent.split(" ")[2]
-    );
-    if (direction === "next") {
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const pageText = document.getElementById("pageNumber").textContent;
+    const totalPages = parseInt(pageText.split(" ")[3]);
+
+    if (direction === "next" && currentPage < totalPages) {
       currentPage++;
-      fetchBooks();
     } else if (direction === "prev" && currentPage > 1) {
       currentPage--;
-      fetchBooks();
     }
-    if ((currentPage = 1)) {
-      prevBtn.style.backgroundColor = "#611991b2 !important";
-    }
-    // Fetch books for the new page
+
+    fetchBooks();
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   // Trigger search on Enter key

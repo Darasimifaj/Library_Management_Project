@@ -56,13 +56,13 @@ nav ul:hover {
   cursor: pointer;
 }
 .Home a {
-  color: #003898;
+  color: #000000e8;
 }
 .Admin a {
   color: #000000e8;
 }
 .Login a {
-  color: #611991;
+  color: #000000e8;
 }
 
 .nav-container {
@@ -266,3 +266,7 @@ main {
   }
 }
 /* END */
+
+.Side{
+  cursor: pointer;
+}
