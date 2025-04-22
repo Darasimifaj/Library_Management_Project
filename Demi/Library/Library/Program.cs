@@ -5,6 +5,7 @@ using Library.Data;
 using Library.Middleware;
 using Library.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
@@ -74,12 +75,15 @@ Log.Logger = new LoggerConfiguration()
 builder.Services.AddLogging(loggingBuilder =>
     loggingBuilder.AddSerilog());
 
-
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+});
 var app = builder.Build();
 //app.UseMiddleware<ApiKeyMiddleware>();
 app.UseCors("AllowAllOrigins");
 
-
+app.UseForwardedHeaders();
 // Configure the HTTP request pipeline
 
 app.UseSwagger();

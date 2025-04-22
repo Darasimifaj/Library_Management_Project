@@ -64,6 +64,11 @@ namespace Library.Controllers
             // Find user
             var user = _context.Users.FirstOrDefault(u => u.UserId == dto.UserId && (u.UserType == userType || u.IsAdmin == IsAdmin));
 
+            var previouslogin = _context.UserLoginHistories.FirstOrDefault(u => u.UserId == dto.UserId && u.LogoutTime == null);
+            if (previouslogin!= null)
+            {
+                previouslogin.LogoutTime = DateTime.UtcNow;
+            }
             if (user == null)
             {
                 _logger.LogWarning("Invalid {UserType} credentials for UserId: {UserId}.", userType, dto.UserId);

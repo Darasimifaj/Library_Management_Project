@@ -15,10 +15,7 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "iisExpress": {
-        "applicationUrl": "http://localhost:50497/",
-        "sslPort": 44354
-      }
+       
     }
   },
   "$schema": "https://json.schemastore.org/launchsettings.json",
